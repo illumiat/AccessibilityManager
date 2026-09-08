@@ -16,8 +16,11 @@ public class App extends Application {
         if (mode >= 0) setThemeMode(mode);
         // API 31+ 动态取色（方案 §二 主题）
         DynamicColors.applyToActivitiesIfAvailable(this);
-        // 定期重启调度：全局单周期任务，幂等（Q16）；无启用配置时 Worker 到期空转
-        RestartWorker.schedule(this);
+        // 【惰性调度】仅在存在已启用的定期重启配置时注册周期任务；
+        // 全部关闭时零主动唤醒（与 README"默认关闭，开启后按需调度"承诺一致）
+        if (RestartPrefs.enabledCount(this) > 0) {
+            RestartWorker.schedule(this);
+        }
     }
 
     /** 主题三态：0=跟随系统 1=浅色 2=深色 */

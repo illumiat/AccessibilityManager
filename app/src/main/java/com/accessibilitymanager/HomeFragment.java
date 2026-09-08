@@ -357,6 +357,8 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         for (String id : enabledRestartIds()) {
             if (!isInstalledId(id)) RestartPrefs.removeCompletely(requireContext(), id);
         }
+        // 【惰性调度】卸载清理后若已无启用配置，取消空转的周期任务
+        RestartWorker.cancelIfIdle(requireContext());
     }
 
     private boolean isInstalledId(String serviceId) {
@@ -518,6 +520,8 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
             Toast.makeText(requireContext(), R.string.toast_write_failed, Toast.LENGTH_SHORT).show();
             refreshStates();
         }
+        // 【惰性调度】开关变化后回收空转调度：全部定期重启配置关闭时取消周期任务（零主动唤醒）
+        RestartWorker.cancelIfIdle(requireContext());
     }
 
     @Override

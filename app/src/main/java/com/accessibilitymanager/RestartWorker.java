@@ -62,6 +62,13 @@ public class RestartWorker extends Worker {
                 UNIQUE_WORK, ExistingPeriodicWorkPolicy.KEEP, req);
     }
 
+    /** 【惰性调度】全部定期重启配置关闭/清理后取消周期任务，恢复零主动唤醒 */
+    public static void cancelIfIdle(Context context) {
+        if (RestartPrefs.enabledCount(context) == 0) {
+            WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK);
+        }
+    }
+
     @NonNull
     @Override
     public Result doWork() {

@@ -11,6 +11,12 @@
 - 详情卡片：服务能力 / 事件解析 + 周期设置
 - 最低系统：**Android 7.0**（原为 5.0）
 
+## 截图
+
+| 手机 | 平板 |
+|---|---|
+| ![手机界面](docs/screenshots/screenshot-phone.jpg) | ![平板界面](docs/screenshots/screenshot-tablet.png) |
+
 ## 使用
 
 1. 安装 APK（见 Releases）
