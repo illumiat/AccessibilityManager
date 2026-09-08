@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 方案 §二：Theme.Material3.DayNight.NoActionBar -->
+    <!-- 【SP2】seed #4759B8 生成的浅色 M3 color roles（深色由 values-night 同名 style 覆盖）；
+         colorSurfaceContainer 系列为 material 1.13.0 实际可用 attr -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <item name="colorPrimary">#4759B8</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#DDE1FF</item>
+        <item name="colorOnPrimaryContainer">#00105C</item>
+        <item name="colorSecondaryContainer">#E1E2F9</item>
+        <item name="colorOnSecondaryContainer">#1B1B4D</item>
+        <item name="colorSurface">#FBF8FF</item>
+        <item name="colorOnSurface">#1A1B21</item>
+        <item name="colorSurfaceContainerLow">#F5F2FA</item>
+        <item name="colorSurfaceContainer">#EFECF4</item>
+        <item name="colorSurfaceContainerHigh">#E9E7EF</item>
+        <item name="colorSurfaceContainerHighest">#E3E1E9</item>
+        <item name="colorOnSurfaceVariant">#45464F</item>
+        <item name="colorOutline">#767680</item>
+        <item name="colorOutlineVariant">#C6C5D0</item>
+    </style>
+</resources>

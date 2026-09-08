@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 平板（≥600dp）：搜索栏加宽至 360dp，横幅区获得更多弹性空间 -->
+    <dimen name="search_box_width">360dp</dimen>
+</resources>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">无障碍管理器</string>
+    <string name="home_title">无障碍管理器</string>
+    <string name="tab_home">主页</string>
+    <string name="tab_settings">设置</string>
+
+    <!-- 主页：空态 / 未授权态 -->
+    <string name="empty_title">未发现任何无障碍服务</string>
+    <string name="empty_action">去系统设置开启无障碍服务</string>
+    <string name="banner_no_permission">尚未授予安全设置写入权限，服务开关暂不可用</string>
+    <string name="banner_action_auth">去授权</string>
+    <string name="banner_restart_failed">存在恢复失败的服务，请检查安全设置写入权限</string>
+
+    <!-- 服务卡片 -->
+    <string name="service_no_description">该服务没有描述</string>
+    <string name="service_restarting">重启中…</string>
+    <string name="service_restart_failed">恢复失败</string>
+    <string name="service_auto_restored">已自动恢复</string>
+    <string name="service_top_badge">置顶</string>
+    <string name="service_icon_desc">服务应用图标</string>
+    <string name="service_lock_desc">保活锁定</string>
+    <string name="service_switch_desc">启用或停用该服务</string>
+
+    <!-- 授权与激活对话框 -->
+    <string name="perm_dialog_title">需要安全设置写入权限</string>
+    <string name="perm_dialog_message">安卓5.1和更低版本的设备，需将本APP转换为系统应用。\n\n安卓6.0及更高版本的设备，在下面三个方法中任选一个均可：\n1.连接电脑USB调试后在电脑CMD执行以下命令：\nadb shell %1$s\n\n2.root激活。\n\n3.Shizuku激活。</string>
+    <string name="activate_dialog_message">您的设备尚未启用无障碍服务功能。您可以选择在系统设置-无障碍-打开或关闭任意服务项来激活系统的无障碍服务功能，也可以授权本APP安全设置写入权限以解决.</string>
+    <string name="privacy_title">隐私政策</string>
+    <string name="privacy_message">本应用不会收集或记录您的任何信息，也不包含任何联网功能。继续使用则代表您同意上述隐私政策。</string>
+    <string name="action_ok">OK</string>
+    <string name="action_copy_command">复制命令</string>
+    <string name="action_root_activate">root激活</string>
+    <string name="action_shizuku_activate">Shizuku激活</string>
+    <string name="toast_activate_ok">成功激活</string>
+    <string name="toast_activate_fail">激活失败</string>
+    <string name="toast_command_copied">命令已复制到剪切板</string>
+    <string name="toast_shizuku_not_running">shizuku未运行</string>
+    <string name="toast_please_grant_notification">请授予通知权限</string>
+    <string name="toast_topped">已将%1$s置顶</string>
+    <string name="toast_untopped">已将%1$s取消置顶</string>
+    <string name="toast_write_failed">写入系统设置失败，请检查权限</string>
+
+    <!-- 设置页 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_subtitle">开关类更改即时生效，周期修改自下个调度周期起生效</string>
+    <string name="group_keep_alive">保活</string>
+    <string name="setting_boot">开机启动保活</string>
+    <string name="setting_boot_desc">设备启动后自动运行保活服务</string>
+    <string name="setting_toast">Toast 提示</string>
+    <string name="setting_toast_desc">服务被自动恢复时弹出提示</string>
+    <string name="setting_hide">不显示后台</string>
+    <string name="setting_hide_desc">最近任务中隐藏本应用</string>
+    <string name="group_restart">定期重启</string>
+    <string name="setting_restart_notify">重启日志通知</string>
+    <string name="setting_restart_notify_desc">每次定期重启发静默通知，同批合并为一条</string>
+    <string name="setting_restart_summary">已启用定期重启：%1$d 个服务</string>
+    <string name="restart_policy_desc">策略：仅在该服务未被使用（应用不在前台）时执行；灭屏后顺延执行，实际间隔不早于设定值。</string>
+    <string name="group_auth_help">授权与帮助</string>
+    <string name="auth_status_ok">安全设置写入权限：已授予</string>
+    <string name="auth_status_missing">安全设置写入权限：未授予</string>
+    <string name="auth_judgement_focus">重启时机判定：前台焦点判定（已授权使用情况访问）</string>
+    <string name="auth_judgement_degraded">重启时机判定：灭屏降级（未授权使用情况访问）</string>
+    <string name="auth_regrant_guide">重新授权引导</string>
+    <string name="auth_notification_ok">通知权限：已授予</string>
+    <string name="auth_notification_missing">通知权限：未授予，点此前往开启</string>
+    <string name="usage_help">使用说明</string>
+    <string name="usage_help_detail">主页卡片开关：开启/关闭无障碍服务；锁形按钮：保活锁定，服务被异常关闭时自动恢复；点击卡片：服务详情，可开启定期重启；设置页：保活选项与外观。</string>
+    <string name="auth_failed_alert">检测到服务恢复失败，安全设置写入权限可能已被撤销，请重新授权</string>
+    <string name="group_appearance">外观</string>
+    <string name="setting_theme">主题外观</string>
+    <string name="theme_follow_system">跟随系统</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="version_line">无障碍管理器 v9.0</string>
+
+    <!-- 详情弹卡 -->
+    <string name="detail_basic_info">基本信息</string>
+    <string name="detail_status">状态：%1$s</string>
+    <string name="detail_status_enabled">已开启</string>
+    <string name="detail_status_disabled">未开启</string>
+    <string name="detail_range">生效范围</string>
+    <string name="range_global">全局生效</string>
+    <string name="detail_capabilities">特殊能力</string>
+    <string name="detail_events">捕获事件类型</string>
+    <string name="detail_feedback">反馈方式</string>
+    <string name="chip_none">无</string>
+    <string name="detail_restart_group">定期重启</string>
+    <string name="detail_restart_enable">启用定期重启</string>
+    <string name="detail_restart_desc">仅在该服务未被使用（应用不在前台）时执行；实际间隔不早于设定值</string>
+    <string name="detail_restart_period">周期：%1$s</string>
+    <string name="detail_restart_modify">修改周期</string>
+    <string name="detail_restart_last">上次执行：%1$s</string>
+    <string name="detail_restart_never">上次执行：尚未执行</string>
+    <string name="detail_open_settings">打开系统设置</string>
+    <string name="period_dialog_title">修改重启周期</string>
+    <string name="period_dialog_hint">输入周期数值</string>
+    <string name="search_hint">搜索服务</string>
+    <string name="period_dialog_helper">仅在该服务未被使用（应用不在前台）时执行（服务使用中自动顺延）；实际间隔不早于设定值</string>
+    <string name="period_invalid">周期需在 30 分钟 ~ 30 天之间</string>
+    <string name="unit_minutes">分钟</string>
+    <string name="unit_hours">小时</string>
+    <string name="unit_days">天</string>
+    <string name="period_display_minutes">每 %1$d 分钟</string>
+    <string name="period_display_hours">每 %1$s 小时</string>
+    <string name="period_display_days">每 %1$s 天</string>
+    <string name="relative_just_now">刚刚</string>
+    <string name="relative_minutes_ago">%1$d 分钟前</string>
+    <string name="relative_hours_ago">%1$d 小时前</string>
+    <string name="relative_days_ago">%1$d 天前</string>
+
+    <!-- 详情位解码 chips（迁移自旧实现） -->
+    <string name="feedback_braille">盲文反馈</string>
+    <string name="feedback_generic">通用反馈</string>
+    <string name="feedback_visual">视觉反馈</string>
+    <string name="feedback_audible">可听（未说出）反馈</string>
+    <string name="feedback_haptic">触觉反馈</string>
+    <string name="feedback_spoken">口头反馈</string>
+    <string name="cap_gestures">执行手势</string>
+    <string name="cap_magnification">控制显示器放大率</string>
+    <string name="cap_filter_key_events">监听和拦截按键事件</string>
+    <string name="cap_web">请求增强的Web辅助功能增强功能</string>
+    <string name="cap_touch_exploration">请求触摸探索模式，使触屏操作变成鼠标操作</string>
+    <string name="cap_retrieve_content">读取屏幕内容</string>
+    <string name="ev_assistant">当前正在阅读用户屏幕上下文的助理事件</string>
+    <string name="ev_context_clicked">点击控件上下文的事件</string>
+    <string name="ev_windows_changed">窗口更改的事件</string>
+    <string name="ev_touch_end">用户结束触摸屏幕的事件</string>
+    <string name="ev_touch_start">用户开始触摸屏幕的事件</string>
+    <string name="ev_gesture_end">结束手势检测的事件</string>
+    <string name="ev_gesture_start">开始手势检测事件</string>
+    <string name="ev_text_traversed">遍历视图文本事件</string>
+    <string name="ev_clear_focus">清除可访问性焦点事件</string>
+    <string name="ev_gain_focus">获得可访问性焦点的事件</string>
+    <string name="ev_announcement">发布公告的应用程序的事件</string>
+    <string name="ev_selection_changed">更改选中文本的事件</string>
+    <string name="ev_view_scrolled">滚动视图的事件</string>
+    <string name="ev_content_changed">窗口内容更改的事件</string>
+    <string name="ev_touch_explore_end">结束触摸探索手势的事件</string>
+    <string name="ev_touch_explore_start">开始触摸探索手势的事件</string>
+    <string name="ev_text_input_end">控件结束文字输入事件</string>
+    <string name="ev_text_input_start">控件接受文字输入事件</string>
+    <string name="ev_notification_changed">通知状态改变的事件</string>
+    <string name="ev_window_state_changed">窗口状态更改的事件</string>
+    <string name="ev_text_changed">文本框的文字改变事件</string>
+    <string name="ev_view_focused">控件获得焦点的事件</string>
+    <string name="ev_view_selected">控件被选取的事件</string>
+    <string name="ev_view_long_clicked">长按控件的事件</string>
+    <string name="ev_view_clicked">点击控件的事件</string>
+    <string name="flag_interactive_windows">访问所有交互式窗口的内容</string>
+    <string name="flag_filter_key_events">监听和拦截按键事件</string>
+    <string name="flag_report_view_ids">获取屏幕视图上所有控件的ID</string>
+    <string name="flag_enhanced_web">启用Web可访问性增强扩展</string>
+    <string name="flag_touch_exploration">要求系统进入触摸探索模式</string>
+    <string name="flag_include_not_important">查询窗口中的不重要内容</string>
+    <string name="flag_default">默认</string>
+
+    <!-- 通知 -->
+    <string name="channel_daemon_name">无障碍保活</string>
+    <string name="notification_daemon_title">无障碍服务保活中 · %1$d 个服务受保护</string>
+    <string name="notification_keep_title">已保活以下无障碍服务：</string>
+    <string name="notification_keep_time">时间：%1$s</string>
+    <string name="channel_restart_name">定期重启日志</string>
+    <string name="notification_restart_title">定期重启已执行</string>
+    <string name="toast_keep_alive">保活%1$s</string>
+    <string name="toast_daemon_start">启动保活</string>
+    <string name="toast_daemon_stop">停止保活</string>
+</resources>

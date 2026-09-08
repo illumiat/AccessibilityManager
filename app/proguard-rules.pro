@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# 【SP3】预备规则（当前 minifyEnabled=false，规则不生效；开启混淆时无需再补）
+# Shizuku（rikka.*）：跨进程 AIDL/反射结构，keep 全量防裁剪
+-keep class rikka.** { *; }
+# WorkManager：ListenableWorker 子类由框架反射实例化
+-keep class * extends androidx.work.ListenableWorker { *; }

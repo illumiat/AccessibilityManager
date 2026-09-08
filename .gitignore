@@ -1,0 +1,13 @@
+# Android build artifacts
+build/
+app/build/
+.gradle/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# CodeBuddy team scratch
+.codebuddy/teams/
