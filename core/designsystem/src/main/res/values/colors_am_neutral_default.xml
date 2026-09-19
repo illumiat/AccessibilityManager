@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：中性(neutral)　变体：Neutral　源色：#0066CC
+  对比度：默认(0.0)　明暗：light
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_neutral_default_primary">#595E6C</color>
+    <color name="am_neutral_default_on_primary">#FFFFFF</color>
+    <color name="am_neutral_default_primary_container">#DDE2F2</color>
+    <color name="am_neutral_default_on_primary_container">#414753</color>
+    <color name="am_neutral_default_secondary">#5B5E66</color>
+    <color name="am_neutral_default_on_secondary">#FFFFFF</color>
+    <color name="am_neutral_default_secondary_container">#E0E2EC</color>
+    <color name="am_neutral_default_on_secondary_container">#44474E</color>
+    <color name="am_neutral_default_tertiary">#565E71</color>
+    <color name="am_neutral_default_on_tertiary">#FFFFFF</color>
+    <color name="am_neutral_default_tertiary_container">#DAE2F9</color>
+    <color name="am_neutral_default_on_tertiary_container">#3E4759</color>
+    <color name="am_neutral_default_error">#BA1A1A</color>
+    <color name="am_neutral_default_on_error">#FFFFFF</color>
+    <color name="am_neutral_default_error_container">#FFDAD6</color>
+    <color name="am_neutral_default_on_error_container">#93000A</color>
+    <color name="am_neutral_default_surface">#FCF8FA</color>
+    <color name="am_neutral_default_on_surface">#1B1B1D</color>
+    <color name="am_neutral_default_on_surface_variant">#474648</color>
+    <color name="am_neutral_default_surface_container_lowest">#FFFFFF</color>
+    <color name="am_neutral_default_surface_container_low">#F6F3F4</color>
+    <color name="am_neutral_default_surface_container">#F0EDEE</color>
+    <color name="am_neutral_default_surface_container_high">#EAE7E9</color>
+    <color name="am_neutral_default_surface_container_highest">#E4E2E3</color>
+    <color name="am_neutral_default_outline">#787778</color>
+    <color name="am_neutral_default_outline_variant">#C8C6C7</color>
+    <color name="am_neutral_default_inverse_surface">#303032</color>
+    <color name="am_neutral_default_inverse_on_surface">#F3F0F1</color>
+    <color name="am_neutral_default_inverse_primary">#C1C6D6</color>
+    <color name="am_neutral_default_surface_bright">#FCF8FA</color>
+    <color name="am_neutral_default_surface_dim">#DCD9DB</color>
+</resources>

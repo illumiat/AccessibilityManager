@@ -119,48 +119,28 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler"
+        <!-- 【P3】列表改由 Compose 渲染（HomeScreen）：四槽卡片 + 动态列数 + 三态 + 滚动暂停预加载。
+             原 RecyclerView + GridLayoutManager + GridSpacingDecoration 整段退役 —— 列数判定移到
+             Compose 侧由 BoxWithConstraints 实时计算，间距用 LazyGrid 的 spacedBy，无需 ItemDecoration。
+             【P6】empty_view 与顶部横幅一并迁进 Compose 后，本布局整体删除。 -->
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/compose_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingStart="4dp"
-            android:paddingTop="4dp"
-            android:paddingEnd="4dp"
-            android:paddingBottom="8dp" />
+            android:layout_height="match_parent" />
 
-        <!-- 零服务空态 -->
-        <LinearLayout
-            android:id="@+id/empty_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:visibility="gone">
+        <!--
+          【已删除】零服务空态的 View 实现（原 empty_view + ImageView 96dp + empty_title + btn_open_accessibility）。
 
-            <ImageView
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:alpha="0.4"
-                android:contentDescription="@string/service_icon_desc"
-                android:src="@drawable/ic_accessibility_placeholder" />
+          删除理由（三重，任一即足够）：
+            1) **违反规范**：图标用了 96dp，规范 §8 的空态图形尺寸是 48–56dp（近两倍）；
+               且缺规范 §6 要求的「bodyMedium 说明下一步」那一段（`empty_desc` 定义了却无人用）；
+            2) **双实现**：Compose 侧已有完整三段式的 `HomeScreen.EmptyState`，
+               但被本 View 抢占 —— `updateEmptyState()` 在列表为空时把 ComposeView 设为 GONE，
+               于是**写对的那份永远不可达**（缺陷清单模式 10：同功能双实现必须收口单点）；
+            3) 属 P6 收尾项（View 残留清零）。
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/empty_title"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
-            <Button
-                android:id="@+id/btn_open_accessibility"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:minHeight="48dp"
-                android:text="@string/empty_action" />
-        </LinearLayout>
+          现由 `HomeScreen` 的 `EmptyState` 独任零服务空态：56dp 低对比图标（SizeTokens.EmptyStateIcon）
+          + `titleMedium`「未发现任何无障碍服务」+ `bodyMedium` 下一步 + 主动作。
+        -->
     </FrameLayout>
 </LinearLayout>

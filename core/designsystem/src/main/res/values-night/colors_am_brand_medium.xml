@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：品牌(brand)　变体：Tonal spot　源色：#4759B8
+  对比度：较高(0.5)　明暗：dark
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_brand_medium_primary">#D6DAFF</color>
+    <color name="am_brand_medium_on_primary">#162155</color>
+    <color name="am_brand_medium_primary_container">#838DC8</color>
+    <color name="am_brand_medium_on_primary_container">#000000</color>
+    <color name="am_brand_medium_secondary">#D9DBF3</color>
+    <color name="am_brand_medium_on_secondary">#222537</color>
+    <color name="am_brand_medium_secondary_container">#8D8FA6</color>
+    <color name="am_brand_medium_on_secondary_container">#000000</color>
+    <color name="am_brand_medium_tertiary">#FCCFEE</color>
+    <color name="am_brand_medium_on_tertiary">#381C32</color>
+    <color name="am_brand_medium_tertiary_container">#AC85A1</color>
+    <color name="am_brand_medium_on_tertiary_container">#000000</color>
+    <color name="am_brand_medium_error">#FFD2CC</color>
+    <color name="am_brand_medium_on_error">#540003</color>
+    <color name="am_brand_medium_error_container">#FF5449</color>
+    <color name="am_brand_medium_on_error_container">#000000</color>
+    <color name="am_brand_medium_surface">#121318</color>
+    <color name="am_brand_medium_on_surface">#FFFFFF</color>
+    <color name="am_brand_medium_on_surface_variant">#DCDBE6</color>
+    <color name="am_brand_medium_surface_container_lowest">#07070C</color>
+    <color name="am_brand_medium_surface_container_low">#1D1D23</color>
+    <color name="am_brand_medium_surface_container">#27272D</color>
+    <color name="am_brand_medium_surface_container_high">#323238</color>
+    <color name="am_brand_medium_surface_container_highest">#3D3D43</color>
+    <color name="am_brand_medium_outline">#B2B1BB</color>
+    <color name="am_brand_medium_outline_variant">#908F99</color>
+    <color name="am_brand_medium_inverse_surface">#E3E1E9</color>
+    <color name="am_brand_medium_inverse_on_surface">#292A2F</color>
+    <color name="am_brand_medium_inverse_primary">#3A447A</color>
+    <color name="am_brand_medium_surface_bright">#44444A</color>
+    <color name="am_brand_medium_surface_dim">#121318</color>
+</resources>

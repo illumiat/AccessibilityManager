@@ -1,0 +1,59 @@
+// :core:designsystem —— 设计系统骨架（规范 §14 的落地形态）
+//
+//   theme/      token：色彩角色、形状、字阶、间距、尺寸、动效
+//   component/  组件外观：只做规范件库里的具名件
+//
+// 业务模块只消费、不定义：不得出现十六进制色值、dp 字面量、自造圆角、tween(。
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
+
+android {
+    namespace 'com.accessibilitymanager.core.designsystem'
+    // material3 1.5.0-alpha18 要求 compileSdk 35。
+    compileSdk 35
+
+    defaultConfig {
+        minSdk 24
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        compose true
+    }
+}
+
+// Kotlin 的 jvmTarget 必须与 compileOptions 对齐，否则 AGP 8 会报不一致。
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+    }
+}
+
+dependencies {
+    // 不使用 compose BOM（见 gradle/libs.versions.toml 说明）。
+    api libs.androidx.material3
+    // 官方图标集以 api 暴露：业务模块直接用 Icons.*，不必各自再声明依赖。
+    api libs.androidx.material.icons.extended
+    api libs.androidx.ui
+    api libs.androidx.ui.graphics
+    api libs.androidx.compose.foundation
+    api libs.androidx.compose.animation
+    api libs.androidx.lifecycle.runtime.ktx
+
+    // 过渡期依赖：设计系统需要读取 Android 主题属性（?attr/colorPrimary 等），
+    // 让 Compose 与尚未迁移的 View 布局共用同一份配色；属性符号来自 Views 库。
+    // material-color-utilities 的算法实现也随它提供（构建期生成静态主题资源用）。
+    // 全部页面迁移进 Compose 后，本依赖的唯一剩余用途是主题属性解析，届时一并移除。
+    implementation libs.material
+    testImplementation libs.junit
+
+    debugImplementation libs.androidx.ui.tooling
+    implementation libs.androidx.ui.tooling.preview
+}

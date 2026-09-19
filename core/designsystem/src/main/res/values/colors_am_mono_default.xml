@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：单色(mono)　变体：Monochrome　源色：#0066CC
+  对比度：默认(0.0)　明暗：light
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_mono_default_primary">#000000</color>
+    <color name="am_mono_default_on_primary">#E2E2E2</color>
+    <color name="am_mono_default_primary_container">#3B3B3B</color>
+    <color name="am_mono_default_on_primary_container">#FFFFFF</color>
+    <color name="am_mono_default_secondary">#5E5E5E</color>
+    <color name="am_mono_default_on_secondary">#FFFFFF</color>
+    <color name="am_mono_default_secondary_container">#D4D4D4</color>
+    <color name="am_mono_default_on_secondary_container">#1B1B1B</color>
+    <color name="am_mono_default_tertiary">#3B3B3B</color>
+    <color name="am_mono_default_on_tertiary">#E2E2E2</color>
+    <color name="am_mono_default_tertiary_container">#747474</color>
+    <color name="am_mono_default_on_tertiary_container">#FFFFFF</color>
+    <color name="am_mono_default_error">#BA1A1A</color>
+    <color name="am_mono_default_on_error">#FFFFFF</color>
+    <color name="am_mono_default_error_container">#FFDAD6</color>
+    <color name="am_mono_default_on_error_container">#410002</color>
+    <color name="am_mono_default_surface">#F9F9F9</color>
+    <color name="am_mono_default_on_surface">#1B1B1B</color>
+    <color name="am_mono_default_on_surface_variant">#474747</color>
+    <color name="am_mono_default_surface_container_lowest">#FFFFFF</color>
+    <color name="am_mono_default_surface_container_low">#F3F3F3</color>
+    <color name="am_mono_default_surface_container">#EEEEEE</color>
+    <color name="am_mono_default_surface_container_high">#E8E8E8</color>
+    <color name="am_mono_default_surface_container_highest">#E2E2E2</color>
+    <color name="am_mono_default_outline">#777777</color>
+    <color name="am_mono_default_outline_variant">#C6C6C6</color>
+    <color name="am_mono_default_inverse_surface">#303030</color>
+    <color name="am_mono_default_inverse_on_surface">#F1F1F1</color>
+    <color name="am_mono_default_inverse_primary">#C6C6C6</color>
+    <color name="am_mono_default_surface_bright">#F9F9F9</color>
+    <color name="am_mono_default_surface_dim">#DADADA</color>
+</resources>

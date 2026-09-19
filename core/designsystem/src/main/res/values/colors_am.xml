@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：品牌(brand)　变体：Tonal spot　源色：#4759B8
+  对比度：默认(0.0)　明暗：light
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_primary">#515B92</color>
+    <color name="am_on_primary">#FFFFFF</color>
+    <color name="am_primary_container">#DEE0FF</color>
+    <color name="am_on_primary_container">#394379</color>
+    <color name="am_secondary">#5B5D72</color>
+    <color name="am_on_secondary">#FFFFFF</color>
+    <color name="am_secondary_container">#DFE1F9</color>
+    <color name="am_on_secondary_container">#434659</color>
+    <color name="am_tertiary">#76546D</color>
+    <color name="am_on_tertiary">#FFFFFF</color>
+    <color name="am_tertiary_container">#FFD7F2</color>
+    <color name="am_on_tertiary_container">#5D3C55</color>
+    <color name="am_error">#BA1A1A</color>
+    <color name="am_on_error">#FFFFFF</color>
+    <color name="am_error_container">#FFDAD6</color>
+    <color name="am_on_error_container">#93000A</color>
+    <color name="am_surface">#FBF8FF</color>
+    <color name="am_on_surface">#1B1B21</color>
+    <color name="am_on_surface_variant">#46464F</color>
+    <color name="am_surface_container_lowest">#FFFFFF</color>
+    <color name="am_surface_container_low">#F5F2FA</color>
+    <color name="am_surface_container">#EFEDF4</color>
+    <color name="am_surface_container_high">#E9E7EF</color>
+    <color name="am_surface_container_highest">#E3E1E9</color>
+    <color name="am_outline">#767680</color>
+    <color name="am_outline_variant">#C6C5D0</color>
+    <color name="am_inverse_surface">#303036</color>
+    <color name="am_inverse_on_surface">#F2F0F7</color>
+    <color name="am_inverse_primary">#BAC3FF</color>
+    <color name="am_surface_bright">#FBF8FF</color>
+    <color name="am_surface_dim">#DBD9E0</color>
+</resources>

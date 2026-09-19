@@ -14,3 +14,6 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AccessibilityManager"
 include ':app'
+// 设计系统骨架（规范 §14 落地形态）：theme/ 管 token、component/ 管组件外观。
+// 业务模块只消费、不定义。
+include ':core:designsystem'

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：中性(neutral)　变体：Neutral　源色：#0066CC
+  对比度：最高(1.0)　明暗：light
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_neutral_high_primary">#262C38</color>
+    <color name="am_neutral_high_on_primary">#FFFFFF</color>
+    <color name="am_neutral_high_primary_container">#444956</color>
+    <color name="am_neutral_high_on_primary_container">#FFFFFF</color>
+    <color name="am_neutral_high_secondary">#292C33</color>
+    <color name="am_neutral_high_on_secondary">#FFFFFF</color>
+    <color name="am_neutral_high_secondary_container">#464951</color>
+    <color name="am_neutral_high_on_secondary_container">#FFFFFF</color>
+    <color name="am_neutral_high_tertiary">#242C3D</color>
+    <color name="am_neutral_high_on_tertiary">#FFFFFF</color>
+    <color name="am_neutral_high_tertiary_container">#41495B</color>
+    <color name="am_neutral_high_on_tertiary_container">#FFFFFF</color>
+    <color name="am_neutral_high_error">#600004</color>
+    <color name="am_neutral_high_on_error">#FFFFFF</color>
+    <color name="am_neutral_high_error_container">#98000A</color>
+    <color name="am_neutral_high_on_error_container">#FFFFFF</color>
+    <color name="am_neutral_high_surface">#FCF8FA</color>
+    <color name="am_neutral_high_on_surface">#000000</color>
+    <color name="am_neutral_high_on_surface_variant">#000000</color>
+    <color name="am_neutral_high_surface_container_lowest">#FFFFFF</color>
+    <color name="am_neutral_high_surface_container_low">#F3F0F1</color>
+    <color name="am_neutral_high_surface_container">#E4E2E3</color>
+    <color name="am_neutral_high_surface_container_high">#D6D4D5</color>
+    <color name="am_neutral_high_surface_container_highest">#C8C6C7</color>
+    <color name="am_neutral_high_outline">#2C2C2D</color>
+    <color name="am_neutral_high_outline_variant">#49494A</color>
+    <color name="am_neutral_high_inverse_surface">#303032</color>
+    <color name="am_neutral_high_inverse_on_surface">#FFFFFF</color>
+    <color name="am_neutral_high_inverse_primary">#C1C6D6</color>
+    <color name="am_neutral_high_surface_bright">#FCF8FA</color>
+    <color name="am_neutral_high_surface_dim">#BAB8BA</color>
+</resources>

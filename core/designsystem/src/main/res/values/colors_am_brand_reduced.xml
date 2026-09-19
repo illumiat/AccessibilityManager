@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：品牌(brand)　变体：Tonal spot　源色：#4759B8
+  对比度：降低(-1.0)　明暗：light
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_brand_reduced_primary">#6771AA</color>
+    <color name="am_brand_reduced_on_primary">#FFFBFF</color>
+    <color name="am_brand_reduced_primary_container">#D2D6FF</color>
+    <color name="am_brand_reduced_on_primary_container">#6D76B0</color>
+    <color name="am_brand_reduced_secondary">#717389</color>
+    <color name="am_brand_reduced_on_secondary">#FFFBFF</color>
+    <color name="am_brand_reduced_secondary_container">#D6D7F0</color>
+    <color name="am_brand_reduced_on_secondary_container">#76798E</color>
+    <color name="am_brand_reduced_tertiary">#8E6984</color>
+    <color name="am_brand_reduced_on_tertiary">#FFFBFF</color>
+    <color name="am_brand_reduced_tertiary_container">#F9CCEA</color>
+    <color name="am_brand_reduced_on_tertiary_container">#946F8A</color>
+    <color name="am_brand_reduced_error">#DA342E</color>
+    <color name="am_brand_reduced_on_error">#FFFBFF</color>
+    <color name="am_brand_reduced_error_container">#FFCDC7</color>
+    <color name="am_brand_reduced_on_error_container">#E23A32</color>
+    <color name="am_brand_reduced_surface">#FBF8FF</color>
+    <color name="am_brand_reduced_on_surface">#5F5E65</color>
+    <color name="am_brand_reduced_on_surface_variant">#7A7A83</color>
+    <color name="am_brand_reduced_surface_container_lowest">#FFFFFF</color>
+    <color name="am_brand_reduced_surface_container_low">#F5F2FA</color>
+    <color name="am_brand_reduced_surface_container">#EFEDF4</color>
+    <color name="am_brand_reduced_surface_container_high">#E9E7EF</color>
+    <color name="am_brand_reduced_surface_container_highest">#E3E1E9</color>
+    <color name="am_brand_reduced_outline">#B2B1BB</color>
+    <color name="am_brand_reduced_outline_variant">#D9D8E2</color>
+    <color name="am_brand_reduced_inverse_surface">#303036</color>
+    <color name="am_brand_reduced_inverse_on_surface">#98979E</color>
+    <color name="am_brand_reduced_inverse_primary">#6C76B0</color>
+    <color name="am_brand_reduced_surface_bright">#FBF8FF</color>
+    <color name="am_brand_reduced_surface_dim">#DBD9E0</color>
+</resources>

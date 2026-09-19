@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：中性(neutral)　变体：Neutral　源色：#0066CC
+  对比度：降低(-1.0)　明暗：light
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_neutral_reduced_primary">#6F7482</color>
+    <color name="am_neutral_reduced_on_primary">#FEFCFF</color>
+    <color name="am_neutral_reduced_primary_container">#D4D9E8</color>
+    <color name="am_neutral_reduced_on_primary_container">#747A88</color>
+    <color name="am_neutral_reduced_secondary">#72747D</color>
+    <color name="am_neutral_reduced_on_secondary">#FEFCFF</color>
+    <color name="am_neutral_reduced_secondary_container">#D7D8E2</color>
+    <color name="am_neutral_reduced_on_secondary_container">#777A82</color>
+    <color name="am_neutral_reduced_tertiary">#6C7588</color>
+    <color name="am_neutral_reduced_on_tertiary">#FEFCFF</color>
+    <color name="am_neutral_reduced_tertiary_container">#D0D9EF</color>
+    <color name="am_neutral_reduced_on_tertiary_container">#717A8D</color>
+    <color name="am_neutral_reduced_error">#DA342E</color>
+    <color name="am_neutral_reduced_on_error">#FFFBFF</color>
+    <color name="am_neutral_reduced_error_container">#FFCDC7</color>
+    <color name="am_neutral_reduced_on_error_container">#E23A32</color>
+    <color name="am_neutral_reduced_surface">#FCF8FA</color>
+    <color name="am_neutral_reduced_on_surface">#5F5F60</color>
+    <color name="am_neutral_reduced_on_surface_variant">#7B7A7C</color>
+    <color name="am_neutral_reduced_surface_container_lowest">#FFFFFF</color>
+    <color name="am_neutral_reduced_surface_container_low">#F6F3F4</color>
+    <color name="am_neutral_reduced_surface_container">#F0EDEE</color>
+    <color name="am_neutral_reduced_surface_container_high">#EAE7E9</color>
+    <color name="am_neutral_reduced_surface_container_highest">#E4E2E3</color>
+    <color name="am_neutral_reduced_outline">#B3B1B3</color>
+    <color name="am_neutral_reduced_outline_variant">#DBD8DA</color>
+    <color name="am_neutral_reduced_inverse_surface">#303032</color>
+    <color name="am_neutral_reduced_inverse_on_surface">#999899</color>
+    <color name="am_neutral_reduced_inverse_primary">#747A88</color>
+    <color name="am_neutral_reduced_surface_bright">#FCF8FA</color>
+    <color name="am_neutral_reduced_surface_dim">#DCD9DB</color>
+</resources>

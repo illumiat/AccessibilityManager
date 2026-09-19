@@ -11,12 +11,11 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_nav"
+    <!-- 【P2】底栏为 Compose（AppNavigationBar）：MD3 NavigationBar + 两态图标 + 药丸指示器。
+         内容区仍为 View Fragment 容器，按 P3/P5 逐页迁移；【P6】全部迁完后移除本布局。 -->
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/compose_bottom_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav" />
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

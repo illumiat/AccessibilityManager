@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：单色(mono)　变体：Monochrome　源色：#0066CC
+  对比度：最高(1.0)　明暗：dark
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_mono_high_primary">#FFFFFF</color>
+    <color name="am_mono_high_on_primary">#000000</color>
+    <color name="am_mono_high_primary_container">#D4D4D4</color>
+    <color name="am_mono_high_on_primary_container">#000000</color>
+    <color name="am_mono_high_secondary">#F0F0F0</color>
+    <color name="am_mono_high_on_secondary">#000000</color>
+    <color name="am_mono_high_secondary_container">#C2C2C2</color>
+    <color name="am_mono_high_on_secondary_container">#0B0B0B</color>
+    <color name="am_mono_high_tertiary">#F0F0F0</color>
+    <color name="am_mono_high_on_tertiary">#000000</color>
+    <color name="am_mono_high_tertiary_container">#C2C2C2</color>
+    <color name="am_mono_high_on_tertiary_container">#000000</color>
+    <color name="am_mono_high_error">#FFECE9</color>
+    <color name="am_mono_high_on_error">#000000</color>
+    <color name="am_mono_high_error_container">#FFAEA4</color>
+    <color name="am_mono_high_on_error_container">#220001</color>
+    <color name="am_mono_high_surface">#131313</color>
+    <color name="am_mono_high_on_surface">#FFFFFF</color>
+    <color name="am_mono_high_on_surface_variant">#FFFFFF</color>
+    <color name="am_mono_high_surface_container_lowest">#000000</color>
+    <color name="am_mono_high_surface_container_low">#1F1F1F</color>
+    <color name="am_mono_high_surface_container">#303030</color>
+    <color name="am_mono_high_surface_container_high">#3B3B3B</color>
+    <color name="am_mono_high_surface_container_highest">#474747</color>
+    <color name="am_mono_high_outline">#F0F0F0</color>
+    <color name="am_mono_high_outline_variant">#C2C2C2</color>
+    <color name="am_mono_high_inverse_surface">#E2E2E2</color>
+    <color name="am_mono_high_inverse_on_surface">#000000</color>
+    <color name="am_mono_high_inverse_primary">#484848</color>
+    <color name="am_mono_high_surface_bright">#505050</color>
+    <color name="am_mono_high_surface_dim">#131313</color>
+</resources>

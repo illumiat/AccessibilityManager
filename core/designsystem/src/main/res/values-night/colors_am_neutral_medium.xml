@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：中性(neutral)　变体：Neutral　源色：#0066CC
+  对比度：较高(0.5)　明暗：dark
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_neutral_medium_primary">#D7DCEC</color>
+    <color name="am_neutral_medium_on_primary">#202631</color>
+    <color name="am_neutral_medium_primary_container">#8B919F</color>
+    <color name="am_neutral_medium_on_primary_container">#000000</color>
+    <color name="am_neutral_medium_secondary">#DADCE6</color>
+    <color name="am_neutral_medium_on_secondary">#22262D</color>
+    <color name="am_neutral_medium_secondary_container">#8E9099</color>
+    <color name="am_neutral_medium_on_secondary_container">#000000</color>
+    <color name="am_neutral_medium_tertiary">#D4DCF2</color>
+    <color name="am_neutral_medium_on_tertiary">#1D2636</color>
+    <color name="am_neutral_medium_tertiary_container">#8891A5</color>
+    <color name="am_neutral_medium_on_tertiary_container">#000000</color>
+    <color name="am_neutral_medium_error">#FFD2CC</color>
+    <color name="am_neutral_medium_on_error">#540003</color>
+    <color name="am_neutral_medium_error_container">#FF5449</color>
+    <color name="am_neutral_medium_on_error_container">#000000</color>
+    <color name="am_neutral_medium_surface">#131315</color>
+    <color name="am_neutral_medium_on_surface">#FFFFFF</color>
+    <color name="am_neutral_medium_on_surface_variant">#DEDBDD</color>
+    <color name="am_neutral_medium_surface_container_lowest">#070708</color>
+    <color name="am_neutral_medium_surface_container_low">#1D1D1F</color>
+    <color name="am_neutral_medium_surface_container">#282829</color>
+    <color name="am_neutral_medium_surface_container_high">#333234</color>
+    <color name="am_neutral_medium_surface_container_highest">#3E3D3F</color>
+    <color name="am_neutral_medium_outline">#B3B1B3</color>
+    <color name="am_neutral_medium_outline_variant">#919091</color>
+    <color name="am_neutral_medium_inverse_surface">#E4E2E3</color>
+    <color name="am_neutral_medium_inverse_on_surface">#2A2A2B</color>
+    <color name="am_neutral_medium_inverse_primary">#424855</color>
+    <color name="am_neutral_medium_surface_bright">#454446</color>
+    <color name="am_neutral_medium_surface_dim">#131315</color>
+</resources>

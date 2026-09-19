@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  基样式 AppTheme 承载父主题与非颜色项；其余样式 parent="AppTheme" 只覆盖颜色角色。
+-->
+<resources>
+
+    <!-- 品牌 · 默认对比度 · Tonal spot（基样式，manifest 引用它） -->
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="colorPrimary">@color/am_primary</item>
+        <item name="colorOnPrimary">@color/am_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_on_primary_container</item>
+        <item name="colorSecondary">@color/am_secondary</item>
+        <item name="colorOnSecondary">@color/am_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_tertiary</item>
+        <item name="colorOnTertiary">@color/am_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_on_tertiary_container</item>
+        <item name="colorError">@color/am_error</item>
+        <item name="colorOnError">@color/am_on_error</item>
+        <item name="colorErrorContainer">@color/am_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_on_error_container</item>
+        <item name="colorSurface">@color/am_surface</item>
+        <item name="colorOnSurface">@color/am_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_surface_container_highest</item>
+        <item name="colorOutline">@color/am_outline</item>
+        <item name="colorOutlineVariant">@color/am_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_surface_dim</item>
+    </style>
+
+    <!-- 品牌 · 降低对比度 · Tonal spot -->
+    <style name="AppTheme_brand_reduced" parent="AppTheme">
+        <item name="colorPrimary">@color/am_brand_reduced_primary</item>
+        <item name="colorOnPrimary">@color/am_brand_reduced_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_brand_reduced_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_brand_reduced_on_primary_container</item>
+        <item name="colorSecondary">@color/am_brand_reduced_secondary</item>
+        <item name="colorOnSecondary">@color/am_brand_reduced_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_brand_reduced_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_brand_reduced_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_brand_reduced_tertiary</item>
+        <item name="colorOnTertiary">@color/am_brand_reduced_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_brand_reduced_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_brand_reduced_on_tertiary_container</item>
+        <item name="colorError">@color/am_brand_reduced_error</item>
+        <item name="colorOnError">@color/am_brand_reduced_on_error</item>
+        <item name="colorErrorContainer">@color/am_brand_reduced_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_brand_reduced_on_error_container</item>
+        <item name="colorSurface">@color/am_brand_reduced_surface</item>
+        <item name="colorOnSurface">@color/am_brand_reduced_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_brand_reduced_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_brand_reduced_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_brand_reduced_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_brand_reduced_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_brand_reduced_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_brand_reduced_surface_container_highest</item>
+        <item name="colorOutline">@color/am_brand_reduced_outline</item>
+        <item name="colorOutlineVariant">@color/am_brand_reduced_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_brand_reduced_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_brand_reduced_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_brand_reduced_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_brand_reduced_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_brand_reduced_surface_dim</item>
+    </style>
+
+    <!-- 品牌 · 较高对比度 · Tonal spot -->
+    <style name="AppTheme_brand_medium" parent="AppTheme">
+        <item name="colorPrimary">@color/am_brand_medium_primary</item>
+        <item name="colorOnPrimary">@color/am_brand_medium_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_brand_medium_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_brand_medium_on_primary_container</item>
+        <item name="colorSecondary">@color/am_brand_medium_secondary</item>
+        <item name="colorOnSecondary">@color/am_brand_medium_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_brand_medium_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_brand_medium_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_brand_medium_tertiary</item>
+        <item name="colorOnTertiary">@color/am_brand_medium_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_brand_medium_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_brand_medium_on_tertiary_container</item>
+        <item name="colorError">@color/am_brand_medium_error</item>
+        <item name="colorOnError">@color/am_brand_medium_on_error</item>
+        <item name="colorErrorContainer">@color/am_brand_medium_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_brand_medium_on_error_container</item>
+        <item name="colorSurface">@color/am_brand_medium_surface</item>
+        <item name="colorOnSurface">@color/am_brand_medium_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_brand_medium_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_brand_medium_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_brand_medium_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_brand_medium_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_brand_medium_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_brand_medium_surface_container_highest</item>
+        <item name="colorOutline">@color/am_brand_medium_outline</item>
+        <item name="colorOutlineVariant">@color/am_brand_medium_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_brand_medium_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_brand_medium_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_brand_medium_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_brand_medium_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_brand_medium_surface_dim</item>
+    </style>
+
+    <!-- 品牌 · 最高对比度 · Tonal spot -->
+    <style name="AppTheme_brand_high" parent="AppTheme">
+        <item name="colorPrimary">@color/am_brand_high_primary</item>
+        <item name="colorOnPrimary">@color/am_brand_high_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_brand_high_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_brand_high_on_primary_container</item>
+        <item name="colorSecondary">@color/am_brand_high_secondary</item>
+        <item name="colorOnSecondary">@color/am_brand_high_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_brand_high_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_brand_high_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_brand_high_tertiary</item>
+        <item name="colorOnTertiary">@color/am_brand_high_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_brand_high_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_brand_high_on_tertiary_container</item>
+        <item name="colorError">@color/am_brand_high_error</item>
+        <item name="colorOnError">@color/am_brand_high_on_error</item>
+        <item name="colorErrorContainer">@color/am_brand_high_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_brand_high_on_error_container</item>
+        <item name="colorSurface">@color/am_brand_high_surface</item>
+        <item name="colorOnSurface">@color/am_brand_high_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_brand_high_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_brand_high_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_brand_high_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_brand_high_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_brand_high_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_brand_high_surface_container_highest</item>
+        <item name="colorOutline">@color/am_brand_high_outline</item>
+        <item name="colorOutlineVariant">@color/am_brand_high_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_brand_high_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_brand_high_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_brand_high_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_brand_high_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_brand_high_surface_dim</item>
+    </style>
+
+    <!-- 中性 · 降低对比度 · Neutral -->
+    <style name="AppTheme_neutral_reduced" parent="AppTheme">
+        <item name="colorPrimary">@color/am_neutral_reduced_primary</item>
+        <item name="colorOnPrimary">@color/am_neutral_reduced_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_neutral_reduced_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_neutral_reduced_on_primary_container</item>
+        <item name="colorSecondary">@color/am_neutral_reduced_secondary</item>
+        <item name="colorOnSecondary">@color/am_neutral_reduced_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_neutral_reduced_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_neutral_reduced_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_neutral_reduced_tertiary</item>
+        <item name="colorOnTertiary">@color/am_neutral_reduced_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_neutral_reduced_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_neutral_reduced_on_tertiary_container</item>
+        <item name="colorError">@color/am_neutral_reduced_error</item>
+        <item name="colorOnError">@color/am_neutral_reduced_on_error</item>
+        <item name="colorErrorContainer">@color/am_neutral_reduced_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_neutral_reduced_on_error_container</item>
+        <item name="colorSurface">@color/am_neutral_reduced_surface</item>
+        <item name="colorOnSurface">@color/am_neutral_reduced_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_neutral_reduced_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_neutral_reduced_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_neutral_reduced_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_neutral_reduced_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_neutral_reduced_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_neutral_reduced_surface_container_highest</item>
+        <item name="colorOutline">@color/am_neutral_reduced_outline</item>
+        <item name="colorOutlineVariant">@color/am_neutral_reduced_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_neutral_reduced_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_neutral_reduced_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_neutral_reduced_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_neutral_reduced_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_neutral_reduced_surface_dim</item>
+    </style>
+
+    <!-- 中性 · 默认对比度 · Neutral -->
+    <style name="AppTheme_neutral_default" parent="AppTheme">
+        <item name="colorPrimary">@color/am_neutral_default_primary</item>
+        <item name="colorOnPrimary">@color/am_neutral_default_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_neutral_default_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_neutral_default_on_primary_container</item>
+        <item name="colorSecondary">@color/am_neutral_default_secondary</item>
+        <item name="colorOnSecondary">@color/am_neutral_default_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_neutral_default_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_neutral_default_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_neutral_default_tertiary</item>
+        <item name="colorOnTertiary">@color/am_neutral_default_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_neutral_default_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_neutral_default_on_tertiary_container</item>
+        <item name="colorError">@color/am_neutral_default_error</item>
+        <item name="colorOnError">@color/am_neutral_default_on_error</item>
+        <item name="colorErrorContainer">@color/am_neutral_default_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_neutral_default_on_error_container</item>
+        <item name="colorSurface">@color/am_neutral_default_surface</item>
+        <item name="colorOnSurface">@color/am_neutral_default_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_neutral_default_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_neutral_default_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_neutral_default_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_neutral_default_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_neutral_default_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_neutral_default_surface_container_highest</item>
+        <item name="colorOutline">@color/am_neutral_default_outline</item>
+        <item name="colorOutlineVariant">@color/am_neutral_default_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_neutral_default_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_neutral_default_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_neutral_default_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_neutral_default_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_neutral_default_surface_dim</item>
+    </style>
+
+    <!-- 中性 · 较高对比度 · Neutral -->
+    <style name="AppTheme_neutral_medium" parent="AppTheme">
+        <item name="colorPrimary">@color/am_neutral_medium_primary</item>
+        <item name="colorOnPrimary">@color/am_neutral_medium_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_neutral_medium_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_neutral_medium_on_primary_container</item>
+        <item name="colorSecondary">@color/am_neutral_medium_secondary</item>
+        <item name="colorOnSecondary">@color/am_neutral_medium_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_neutral_medium_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_neutral_medium_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_neutral_medium_tertiary</item>
+        <item name="colorOnTertiary">@color/am_neutral_medium_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_neutral_medium_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_neutral_medium_on_tertiary_container</item>
+        <item name="colorError">@color/am_neutral_medium_error</item>
+        <item name="colorOnError">@color/am_neutral_medium_on_error</item>
+        <item name="colorErrorContainer">@color/am_neutral_medium_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_neutral_medium_on_error_container</item>
+        <item name="colorSurface">@color/am_neutral_medium_surface</item>
+        <item name="colorOnSurface">@color/am_neutral_medium_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_neutral_medium_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_neutral_medium_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_neutral_medium_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_neutral_medium_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_neutral_medium_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_neutral_medium_surface_container_highest</item>
+        <item name="colorOutline">@color/am_neutral_medium_outline</item>
+        <item name="colorOutlineVariant">@color/am_neutral_medium_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_neutral_medium_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_neutral_medium_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_neutral_medium_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_neutral_medium_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_neutral_medium_surface_dim</item>
+    </style>
+
+    <!-- 中性 · 最高对比度 · Neutral -->
+    <style name="AppTheme_neutral_high" parent="AppTheme">
+        <item name="colorPrimary">@color/am_neutral_high_primary</item>
+        <item name="colorOnPrimary">@color/am_neutral_high_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_neutral_high_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_neutral_high_on_primary_container</item>
+        <item name="colorSecondary">@color/am_neutral_high_secondary</item>
+        <item name="colorOnSecondary">@color/am_neutral_high_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_neutral_high_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_neutral_high_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_neutral_high_tertiary</item>
+        <item name="colorOnTertiary">@color/am_neutral_high_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_neutral_high_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_neutral_high_on_tertiary_container</item>
+        <item name="colorError">@color/am_neutral_high_error</item>
+        <item name="colorOnError">@color/am_neutral_high_on_error</item>
+        <item name="colorErrorContainer">@color/am_neutral_high_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_neutral_high_on_error_container</item>
+        <item name="colorSurface">@color/am_neutral_high_surface</item>
+        <item name="colorOnSurface">@color/am_neutral_high_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_neutral_high_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_neutral_high_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_neutral_high_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_neutral_high_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_neutral_high_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_neutral_high_surface_container_highest</item>
+        <item name="colorOutline">@color/am_neutral_high_outline</item>
+        <item name="colorOutlineVariant">@color/am_neutral_high_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_neutral_high_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_neutral_high_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_neutral_high_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_neutral_high_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_neutral_high_surface_dim</item>
+    </style>
+
+    <!-- 单色 · 降低对比度 · Monochrome -->
+    <style name="AppTheme_mono_reduced" parent="AppTheme">
+        <item name="colorPrimary">@color/am_mono_reduced_primary</item>
+        <item name="colorOnPrimary">@color/am_mono_reduced_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_mono_reduced_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_mono_reduced_on_primary_container</item>
+        <item name="colorSecondary">@color/am_mono_reduced_secondary</item>
+        <item name="colorOnSecondary">@color/am_mono_reduced_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_mono_reduced_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_mono_reduced_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_mono_reduced_tertiary</item>
+        <item name="colorOnTertiary">@color/am_mono_reduced_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_mono_reduced_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_mono_reduced_on_tertiary_container</item>
+        <item name="colorError">@color/am_mono_reduced_error</item>
+        <item name="colorOnError">@color/am_mono_reduced_on_error</item>
+        <item name="colorErrorContainer">@color/am_mono_reduced_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_mono_reduced_on_error_container</item>
+        <item name="colorSurface">@color/am_mono_reduced_surface</item>
+        <item name="colorOnSurface">@color/am_mono_reduced_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_mono_reduced_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_mono_reduced_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_mono_reduced_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_mono_reduced_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_mono_reduced_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_mono_reduced_surface_container_highest</item>
+        <item name="colorOutline">@color/am_mono_reduced_outline</item>
+        <item name="colorOutlineVariant">@color/am_mono_reduced_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_mono_reduced_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_mono_reduced_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_mono_reduced_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_mono_reduced_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_mono_reduced_surface_dim</item>
+    </style>
+
+    <!-- 单色 · 默认对比度 · Monochrome -->
+    <style name="AppTheme_mono_default" parent="AppTheme">
+        <item name="colorPrimary">@color/am_mono_default_primary</item>
+        <item name="colorOnPrimary">@color/am_mono_default_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_mono_default_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_mono_default_on_primary_container</item>
+        <item name="colorSecondary">@color/am_mono_default_secondary</item>
+        <item name="colorOnSecondary">@color/am_mono_default_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_mono_default_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_mono_default_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_mono_default_tertiary</item>
+        <item name="colorOnTertiary">@color/am_mono_default_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_mono_default_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_mono_default_on_tertiary_container</item>
+        <item name="colorError">@color/am_mono_default_error</item>
+        <item name="colorOnError">@color/am_mono_default_on_error</item>
+        <item name="colorErrorContainer">@color/am_mono_default_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_mono_default_on_error_container</item>
+        <item name="colorSurface">@color/am_mono_default_surface</item>
+        <item name="colorOnSurface">@color/am_mono_default_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_mono_default_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_mono_default_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_mono_default_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_mono_default_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_mono_default_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_mono_default_surface_container_highest</item>
+        <item name="colorOutline">@color/am_mono_default_outline</item>
+        <item name="colorOutlineVariant">@color/am_mono_default_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_mono_default_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_mono_default_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_mono_default_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_mono_default_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_mono_default_surface_dim</item>
+    </style>
+
+    <!-- 单色 · 较高对比度 · Monochrome -->
+    <style name="AppTheme_mono_medium" parent="AppTheme">
+        <item name="colorPrimary">@color/am_mono_medium_primary</item>
+        <item name="colorOnPrimary">@color/am_mono_medium_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_mono_medium_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_mono_medium_on_primary_container</item>
+        <item name="colorSecondary">@color/am_mono_medium_secondary</item>
+        <item name="colorOnSecondary">@color/am_mono_medium_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_mono_medium_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_mono_medium_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_mono_medium_tertiary</item>
+        <item name="colorOnTertiary">@color/am_mono_medium_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_mono_medium_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_mono_medium_on_tertiary_container</item>
+        <item name="colorError">@color/am_mono_medium_error</item>
+        <item name="colorOnError">@color/am_mono_medium_on_error</item>
+        <item name="colorErrorContainer">@color/am_mono_medium_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_mono_medium_on_error_container</item>
+        <item name="colorSurface">@color/am_mono_medium_surface</item>
+        <item name="colorOnSurface">@color/am_mono_medium_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_mono_medium_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_mono_medium_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_mono_medium_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_mono_medium_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_mono_medium_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_mono_medium_surface_container_highest</item>
+        <item name="colorOutline">@color/am_mono_medium_outline</item>
+        <item name="colorOutlineVariant">@color/am_mono_medium_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_mono_medium_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_mono_medium_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_mono_medium_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_mono_medium_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_mono_medium_surface_dim</item>
+    </style>
+
+    <!-- 单色 · 最高对比度 · Monochrome -->
+    <style name="AppTheme_mono_high" parent="AppTheme">
+        <item name="colorPrimary">@color/am_mono_high_primary</item>
+        <item name="colorOnPrimary">@color/am_mono_high_on_primary</item>
+        <item name="colorPrimaryContainer">@color/am_mono_high_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/am_mono_high_on_primary_container</item>
+        <item name="colorSecondary">@color/am_mono_high_secondary</item>
+        <item name="colorOnSecondary">@color/am_mono_high_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/am_mono_high_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/am_mono_high_on_secondary_container</item>
+        <item name="colorTertiary">@color/am_mono_high_tertiary</item>
+        <item name="colorOnTertiary">@color/am_mono_high_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/am_mono_high_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/am_mono_high_on_tertiary_container</item>
+        <item name="colorError">@color/am_mono_high_error</item>
+        <item name="colorOnError">@color/am_mono_high_on_error</item>
+        <item name="colorErrorContainer">@color/am_mono_high_error_container</item>
+        <item name="colorOnErrorContainer">@color/am_mono_high_on_error_container</item>
+        <item name="colorSurface">@color/am_mono_high_surface</item>
+        <item name="colorOnSurface">@color/am_mono_high_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/am_mono_high_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/am_mono_high_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/am_mono_high_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/am_mono_high_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/am_mono_high_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/am_mono_high_surface_container_highest</item>
+        <item name="colorOutline">@color/am_mono_high_outline</item>
+        <item name="colorOutlineVariant">@color/am_mono_high_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/am_mono_high_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/am_mono_high_inverse_on_surface</item>
+        <item name="colorPrimaryInverse">@color/am_mono_high_inverse_primary</item>
+        <item name="colorSurfaceBright">@color/am_mono_high_surface_bright</item>
+        <item name="colorSurfaceDim">@color/am_mono_high_surface_dim</item>
+    </style>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：单色(mono)　变体：Monochrome　源色：#0066CC
+  对比度：降低(-1.0)　明暗：dark
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_mono_reduced_primary">#919191</color>
+    <color name="am_mono_reduced_on_primary">#2A2A2A</color>
+    <color name="am_mono_reduced_primary_container">#3A3A3A</color>
+    <color name="am_mono_reduced_on_primary_container">#848484</color>
+    <color name="am_mono_reduced_secondary">#919191</color>
+    <color name="am_mono_reduced_on_secondary">#2A2A2A</color>
+    <color name="am_mono_reduced_secondary_container">#3A3A3A</color>
+    <color name="am_mono_reduced_on_secondary_container">#848484</color>
+    <color name="am_mono_reduced_tertiary">#919191</color>
+    <color name="am_mono_reduced_on_tertiary">#2A2A2A</color>
+    <color name="am_mono_reduced_tertiary_container">#3A3A3A</color>
+    <color name="am_mono_reduced_on_tertiary_container">#848484</color>
+    <color name="am_mono_reduced_error">#FF5449</color>
+    <color name="am_mono_reduced_on_error">#5C0003</color>
+    <color name="am_mono_reduced_error_container">#7B0007</color>
+    <color name="am_mono_reduced_on_error_container">#F0443B</color>
+    <color name="am_mono_reduced_surface">#131313</color>
+    <color name="am_mono_reduced_on_surface">#A3A3A3</color>
+    <color name="am_mono_reduced_on_surface_variant">#838383</color>
+    <color name="am_mono_reduced_surface_container_lowest">#0E0E0E</color>
+    <color name="am_mono_reduced_surface_container_low">#1B1B1B</color>
+    <color name="am_mono_reduced_surface_container">#1F1F1F</color>
+    <color name="am_mono_reduced_surface_container_high">#2A2A2A</color>
+    <color name="am_mono_reduced_surface_container_highest">#353535</color>
+    <color name="am_mono_reduced_outline">#545454</color>
+    <color name="am_mono_reduced_outline_variant">#3A3A3A</color>
+    <color name="am_mono_reduced_inverse_surface">#E2E2E2</color>
+    <color name="am_mono_reduced_inverse_on_surface">#646464</color>
+    <color name="am_mono_reduced_inverse_primary">#808080</color>
+    <color name="am_mono_reduced_surface_bright">#393939</color>
+    <color name="am_mono_reduced_surface_dim">#131313</color>
+</resources>

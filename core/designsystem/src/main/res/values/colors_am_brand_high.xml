@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：品牌(brand)　变体：Tonal spot　源色：#4759B8
+  对比度：最高(1.0)　明暗：light
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_brand_high_primary">#1D275C</color>
+    <color name="am_brand_high_on_primary">#FFFFFF</color>
+    <color name="am_brand_high_primary_container">#3B457B</color>
+    <color name="am_brand_high_on_primary_container">#FFFFFF</color>
+    <color name="am_brand_high_secondary">#282B3D</color>
+    <color name="am_brand_high_on_secondary">#FFFFFF</color>
+    <color name="am_brand_high_secondary_container">#45485C</color>
+    <color name="am_brand_high_on_secondary_container">#FFFFFF</color>
+    <color name="am_brand_high_tertiary">#3F2239</color>
+    <color name="am_brand_high_on_tertiary">#FFFFFF</color>
+    <color name="am_brand_high_tertiary_container">#5F3F57</color>
+    <color name="am_brand_high_on_tertiary_container">#FFFFFF</color>
+    <color name="am_brand_high_error">#600004</color>
+    <color name="am_brand_high_on_error">#FFFFFF</color>
+    <color name="am_brand_high_error_container">#98000A</color>
+    <color name="am_brand_high_on_error_container">#FFFFFF</color>
+    <color name="am_brand_high_surface">#FBF8FF</color>
+    <color name="am_brand_high_on_surface">#000000</color>
+    <color name="am_brand_high_on_surface_variant">#000000</color>
+    <color name="am_brand_high_surface_container_lowest">#FFFFFF</color>
+    <color name="am_brand_high_surface_container_low">#F2F0F7</color>
+    <color name="am_brand_high_surface_container">#E3E1E9</color>
+    <color name="am_brand_high_surface_container_high">#D5D3DB</color>
+    <color name="am_brand_high_surface_container_highest">#C7C5CD</color>
+    <color name="am_brand_high_outline">#2B2C34</color>
+    <color name="am_brand_high_outline_variant">#484851</color>
+    <color name="am_brand_high_inverse_surface">#303036</color>
+    <color name="am_brand_high_inverse_on_surface">#FFFFFF</color>
+    <color name="am_brand_high_inverse_primary">#BAC3FF</color>
+    <color name="am_brand_high_surface_bright">#FBF8FF</color>
+    <color name="am_brand_high_surface_dim">#B9B8BF</color>
+</resources>

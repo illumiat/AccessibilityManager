@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  由 PaletteGeneratorTest 生成，请勿手改。
+  主题：单色(mono)　变体：Monochrome　源色：#0066CC
+  对比度：较高(0.5)　明暗：dark
+  改配色请改生成器的主题清单并重跑，不要直接改这里的色值。
+-->
+<resources>
+    <color name="am_mono_medium_primary">#FFFFFF</color>
+    <color name="am_mono_medium_on_primary">#1B1B1B</color>
+    <color name="am_mono_medium_primary_container">#D4D4D4</color>
+    <color name="am_mono_medium_on_primary_container">#000000</color>
+    <color name="am_mono_medium_secondary">#DCDCDC</color>
+    <color name="am_mono_medium_on_secondary">#1B1B1B</color>
+    <color name="am_mono_medium_secondary_container">#919191</color>
+    <color name="am_mono_medium_on_secondary_container">#000000</color>
+    <color name="am_mono_medium_tertiary">#E2E2E2</color>
+    <color name="am_mono_medium_on_tertiary">#1B1B1B</color>
+    <color name="am_mono_medium_tertiary_container">#919191</color>
+    <color name="am_mono_medium_on_tertiary_container">#000000</color>
+    <color name="am_mono_medium_error">#FFD2CC</color>
+    <color name="am_mono_medium_on_error">#540003</color>
+    <color name="am_mono_medium_error_container">#FF5449</color>
+    <color name="am_mono_medium_on_error_container">#000000</color>
+    <color name="am_mono_medium_surface">#131313</color>
+    <color name="am_mono_medium_on_surface">#FFFFFF</color>
+    <color name="am_mono_medium_on_surface_variant">#DCDCDC</color>
+    <color name="am_mono_medium_surface_container_lowest">#070707</color>
+    <color name="am_mono_medium_surface_container_low">#1D1D1D</color>
+    <color name="am_mono_medium_surface_container">#282828</color>
+    <color name="am_mono_medium_surface_container_high">#323232</color>
+    <color name="am_mono_medium_surface_container_highest">#3E3E3E</color>
+    <color name="am_mono_medium_outline">#B2B2B2</color>
+    <color name="am_mono_medium_outline_variant">#909090</color>
+    <color name="am_mono_medium_inverse_surface">#E2E2E2</color>
+    <color name="am_mono_medium_inverse_on_surface">#2A2A2A</color>
+    <color name="am_mono_medium_inverse_primary">#484848</color>
+    <color name="am_mono_medium_surface_bright">#444444</color>
+    <color name="am_mono_medium_surface_dim">#131313</color>
+</resources>

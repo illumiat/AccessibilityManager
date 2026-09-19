@@ -11,3 +11,6 @@ local.properties
 
 # CodeBuddy team scratch
 .codebuddy/teams/
+
+# 真机验证截图（过程产物；正式截图在 docs/screenshots/）
+.codebuddy/shots/

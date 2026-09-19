@@ -1,5 +1,14 @@
 package com.accessibilitymanager;
 
+import com.accessibilitymanager.ui.detail.DetailInfo;
+import com.accessibilitymanager.ui.detail.DetailRestart;
+import com.accessibilitymanager.ui.detail.ServiceDetailBinder;
+import com.accessibilitymanager.ui.detail.ServiceDetailCallback;
+import com.accessibilitymanager.ui.detail.ServiceDetailState;
+import com.accessibilitymanager.ui.home.HomeListBinder;
+import com.accessibilitymanager.ui.home.HomeListState;
+import com.accessibilitymanager.ui.home.HomeServiceCallback;
+
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
@@ -20,33 +29,25 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowMetrics;
 import android.view.accessibility.AccessibilityManager;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.compose.ui.platform.ComposeView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.chip.Chip;
-import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.sidesheet.SideSheetDialog;
 
 import java.util.ArrayList;
@@ -64,17 +65,18 @@ import rikka.shizuku.Shizuku;
  * 空态/未授权态/onResume 重查列表 + 详情弹卡（<600dp Bottom Sheet / ≥600dp Side Sheet）
  * + per-服务定期重启配置入口。
  */
-public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
+public class HomeFragment extends Fragment implements HomeServiceCallback {
 
     private static final int REQUEST_POST_NOTIFICATIONS = 1;
 
     private SharedPreferences sp;
     private IconCache iconCache;
-    private ServiceAdapter adapter;
-    private GridLayoutManager layoutManager;
+    /** 【P3】列表状态持有者（Java 数据 → 不可变模型）+ Compose 列表宿主（替代 adapter/recyclerView） */
+    private HomeListState listState;
+    private android.view.View listView;
 
-    private RecyclerView recyclerView;
-    private View emptyView;
+    // 【P6】原 `emptyView` 字段已删（连同 `updateEmptyState()`）：
+    // 零服务空态改由 Compose 的 `HomeScreen.EmptyState` 独任，不再有 View 侧开关。
     private View banner;
     private View bannerFailed;
 
@@ -96,6 +98,13 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
     private AccessibilityServiceInfo detailInfo;
     /** 详情 Sheet 打开期间可重入的定期重启区域刷新逻辑（bindDetail 注册 / dismiss 清理）【P3】 */
     private Runnable detailRestartRefresher;
+    /**
+     * 【P4】详情内容的 **Kotlin 不可变模型层**状态持有者。
+     *
+     * 与 [listState] 同一条约束：**Java 类型绝不能进入组合树**（Java POJO 无可变/相等语义
+     * → Compose 判定 unstable → 跳过重组失效）。宿主只往里提交已定稿的模型。
+     */
+    private ServiceDetailState detailState;
     /** 上次已知宽度是否 ≥600dp（Sheet 形态阈值态）；null = 尚未测量【SP1】 */
     private Boolean lastWide;
 
@@ -168,75 +177,28 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
                         REQUEST_POST_NOTIFICATIONS);
             }
         }
-        recyclerView = view.findViewById(R.id.recycler);
-        emptyView = view.findViewById(R.id.empty_view);
         banner = view.findViewById(R.id.banner);
         bannerFailed = view.findViewById(R.id.banner_failed);
 
-        view.findViewById(R.id.btn_open_accessibility).setOnClickListener(v ->
-                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)));
+        // 【P6】「去系统设置开启无障碍服务」的入口已随空态移交 Compose
+        // （HomeScreen.EmptyState 的 onOpenSystemSettings → HomeListBinder）。
         view.findViewById(R.id.banner_action).setOnClickListener(v ->
                 PermissionHelper.showPermissionDialog(requireContext()));
 
-        // 搜索栏：输入即过滤（保序，置顶顺序保留），清空恢复全量
-        android.widget.EditText searchInput = view.findViewById(R.id.search_input);
-        searchInput.addTextChangedListener(new android.text.TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) { }
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) { }
-            @Override public void afterTextChanged(android.text.Editable s) {
-                searchQuery = s.toString();
-                applyFilter();
-            }
-        });
+        // 【P3】搜索栏已迁入 Compose（HomeScreen 的 SearchField）：原 EditText 隐藏，
+        // searchQuery 字段保留为唯一数据源，由 Compose 的 onQueryChange 回写。【P6】从布局删除此项。
+        android.view.View searchLayout = view.findViewById(R.id.search_layout);
+        if (searchLayout != null) searchLayout.setVisibility(android.view.View.GONE);
 
-        layoutManager = new GridLayoutManager(requireContext(), 1);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addItemDecoration(new GridSpacingDecoration(
-                Math.round(8 * getResources().getDisplayMetrics().density)));
+        // 【P3】列表改由 Compose 渲染，以下三段 View 侧机制整段退役：
+        //   1) GridLayoutManager 的 span 判定 → Compose 用 BoxWithConstraints 实时算（等价）
+        //   2) GridSpacingDecoration → LazyGrid 的 spacedBy(8dp)
+        //   3) OnScrollListener 的滚动暂停 → snapshotFlow(isScrollInProgress) → IconCache.setPaused
+        listState = new HomeListState(requireContext().getApplicationContext(), iconCache);
+        listView = view.findViewById(R.id.compose_list);
+        bindComposeList();
 
-        adapter = new ServiceAdapter(requireContext(), display, iconCache, this);
-        recyclerView.setAdapter(adapter);
-
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
-                boolean scrolling = newState == RecyclerView.SCROLL_STATE_DRAGGING
-                        || newState == RecyclerView.SCROLL_STATE_SETTLING;
-                adapter.setScrollingPaused(scrolling);
-                if (newState == RecyclerView.SCROLL_STATE_IDLE) adapter.reloadVisibleIcons(rv);
-            }
-        });
-
-        // spanCount 动态计算 = ceil((contentWidth−8dp)/(500dp+8dp))，下限 1
-        // 单卡最大宽 500dp：手机竖屏(≈420dp)恒 1 列；平板竖屏(≈800dp) 2 列；平板横屏(≥1224dp) 3 列
-        // （400dp 阈值会让密度调整后的手机竖屏 421dp 误入 2 列，已上调）
-        final float density = getResources().getDisplayMetrics().density;
-        // 【首帧修正】onCreateView 即按窗口宽度预算初始 span，避免首帧单列闪跳
-        int initialSpan = (int) Math.ceil((getResources().getConfiguration().screenWidthDp - 8f) / 508f);
-        layoutManager.setSpanCount(Math.max(1, initialSpan));
-        recyclerView.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or2, ob) -> {
-            int width = r - l;
-            int oldWidth = or2 - ol;
-            if (width == oldWidth) return;
-            float gap = 8 * density;
-            int span = (int) Math.ceil((width - gap) / (500 * density + gap));
-            span = Math.max(1, span);
-            // 【SP1】600dp 阈值态独立跟踪：590→620dp 时 span 恒 2 不变，但 Sheet 形态已跨 Bottom/Side 界限，必须跟随
-            boolean newWide = width >= 600 * density;
-            boolean wideChanged = lastWide != null && lastWide != newWide;
-            lastWide = newWide;
-            boolean spanChanged = layoutManager.getSpanCount() != span;
-            if (!spanChanged && !wideChanged) return;
-            int first = layoutManager.findFirstVisibleItemPosition();
-            layoutManager.setSpanCount(span);
-            if (first != RecyclerView.NO_POSITION) layoutManager.scrollToPosition(first);
-            // 尺寸变化（跨 span 阈值或 600dp 形态阈值）时详情卡先 dismiss，再按新宽度以新形态重开【MISSING 12 / SP1】
-            AccessibilityServiceInfo reopen =
-                    detailDialog != null && detailDialog.isShowing() && detailServiceId != null
-                            ? detailInfo : null;
-            dismissDetailSheet();
-            if (reopen != null) openDetail(reopen);
-        });
+        bindDetailFormFactorWatcher(view);
 
         loadInstalled();
 
@@ -283,7 +245,7 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         // 【二轮修订 P1】从系统设置返回时重查列表与权限，不依赖 ContentObserver 事件
         loadInstalled();
         boolean granted = PermissionHelper.hasWritePermission(requireContext());
-        if (adapter != null) adapter.setPermissionState(granted);
+        if (listState != null) listState.setPermission(granted);
         refreshStates();
         updateBanners(granted);
     }
@@ -316,10 +278,11 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         cleanupUninstalledConfigs();
 
         sortDisplay();
-        if (adapter != null) applyFilter();
+        // 【P3】原 `applyFilter()`（→ adapter.setItems）此处省略：末尾 refreshStates() 已用**新的**
+        // settingValue 做一次 refreshList()，先跑一次会拿旧 settingValue 造成一帧开关态错位。
         settingValue = readSettingValue();
         tmpSettingValue = settingValue;
-        updateEmptyState();
+        // 【P6】原 updateEmptyState() 已删：空态由 Compose 自然渲染，不再需要 View 侧开关。
         refreshStates();
     }
 
@@ -328,22 +291,9 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
      * 匹配范围：服务 id、缓存的应用标签/服务标签。空查询显示全部。
      */
     private void applyFilter() {
-        List<AccessibilityServiceInfo> filtered = new ArrayList<>();
-        String q = searchQuery == null ? "" : searchQuery.trim().toLowerCase(java.util.Locale.ROOT);
-        if (q.isEmpty()) {
-            filtered.addAll(display);
-        } else {
-            for (AccessibilityServiceInfo info : display) {
-                String id = info.getId();
-                IconCache.Entry e = iconCache.peek(id);
-                String hay = (id + " "
-                        + (e != null && e.appLabel != null ? e.appLabel : "") + " "
-                        + (e != null && e.serviceLabel != null ? e.serviceLabel : ""))
-                        .toLowerCase(java.util.Locale.ROOT);
-                if (hay.contains(q)) filtered.add(info);
-            }
-        }
-        if (adapter != null) adapter.setItems(filtered);
+        // 【P3】过滤已上移到 HomeListState.submit（按 id / 应用名 / 服务名匹配，同一口径）；
+        // searchQuery 是唯一数据源，此处只需重算列表。display 仍由 sortDisplay() 维护（供详情/置顶定位用）。
+        refreshList();
     }
 
     /** 列表刷新时同步清理不存在服务的重启配置【二轮修订 P2】 */
@@ -403,24 +353,72 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         });
     }
 
-    private void updateEmptyState() {
-        boolean empty = installed.isEmpty();
-        if (emptyView != null) emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
-        if (recyclerView != null) recyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
+    // 【P6】updateEmptyState() 已删除。
+    //
+    // 它原本在 `installed.isEmpty()` 时把 View 侧的空态置 VISIBLE、把 ComposeView 置 GONE。
+    // 这是**双实现**：Compose 的 EmptyState 已经完整实现三段式（56dp 低对比图标 +
+    // titleMedium + bodyMedium 下一步 + 主动作），却被这段逻辑挡住而**永远不可达**；
+    // 而真正渲染的 View 空态反而不合规（图标 96dp，超规范 §8 的 48–56dp 近两倍，
+    // 且缺 §6 要求的「下一步」一段）。
+    //
+    // 现由 Compose 独任：列表为空时 `HomeScreen` 自然渲染 EmptyState，
+    // 故 **ComposeView 必须始终可见**，不再有"谁显示"的开关。
+
+    // ---------- 【P3】列表渲染收口 ----------
+
+    /**
+     * 列表刷新**唯一入口**：把当前全部数据交给 Compose 状态持有者。
+     * 替代原先散落的 adapter.setItems / refreshStates / moveItem / notifyItemChanged 调用。
+     */
+    private void refreshList() {
+        if (listState == null) return;
+        listState.submit(
+                new ArrayList<>(installed),
+                settingValue,
+                pendingSet(),
+                failedSet(),
+                topOrder(),
+                daemonSet,
+                this::restartSummary);
+    }
+
+    /** 绑定 Compose 列表（**只调一次**：状态类输入走 listState 的 Compose 状态，不重调 setContent）。 */
+    private void bindComposeList() {
+        if (!(listView instanceof androidx.compose.ui.platform.ComposeView)) return;
+        HomeListBinder.bind(
+                (androidx.compose.ui.platform.ComposeView) listView,
+                listState,
+                this,
+                q -> {
+                    searchQuery = q;
+                    refreshList();
+                },
+                () -> PermissionHelper.showPermissionDialog(requireContext()),
+                () -> startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)),
+                this::refreshList);
+    }
+
+    /** 置顶串顺序（既有 sortDisplay 的 indexOf 排序依赖串顺序，故必须传 List 而非 Set）。 */
+    private List<String> topOrder() {
+        List<String> out = new ArrayList<>();
+        for (String id : sp.getString("top", "").split(":")) {
+            if (!id.isEmpty()) out.add(id);
+        }
+        return out;
     }
 
     /** observer 路径的只读显示刷新：可见行开关态 + 详情卡定期重启区域（不写 Settings.Secure）【P4】 */
     private void postStatesRefresh() {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                if (adapter != null) adapter.refreshStates(settingValue, pendingSet(), failedSet());
+                refreshList();
                 refreshDetailRestartArea(); // 【P3】Sheet 打开中同步"重启中…"/恢复态，防停留旧态
             });
         }
     }
 
     private void refreshStates() {
-        if (adapter != null) adapter.refreshStates(settingValue, pendingSet(), failedSet());
+        refreshList();
         refreshDetailRestartArea(); // 【P3】局部刷新路径同步详情 Sheet 定期重启区域
     }
 
@@ -495,7 +493,7 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         }
     }
 
-    // ---------- ServiceAdapter.Callback ----------
+    // ---------- HomeServiceCallback（列表意图 → Java 侧落笔） ----------
 
     @Override
     public void onToggle(AccessibilityServiceInfo info, boolean checked) {
@@ -540,13 +538,9 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         }
         daemon = sp.getString("daemon", ""); // 内存镜像自 SP 回读，与持锁写入结果保持一致
         startForegroundDaemon();
+        // 【P3】锁图标即时跟随：Compose 侧按**不可变模型整体比对**（locked 在模型里），
+        // 只要重启列表即自动反映；原 adapter.notifyItemChanged(pos, PAYLOAD_STATE) 精确重绑不再需要。
         refreshStates();
-        // 【锁状态即时跟随】refreshStates 的变更检测不含锁定项（daemonSet 不在其比对集），
-        // 点击后对该行精确发 payload 重绑，锁图标立即切换
-        int pos = display.indexOf(info);
-        if (pos != RecyclerView.NO_POSITION && adapter != null) {
-            adapter.notifyItemChanged(pos, ServiceAdapter.PAYLOAD_STATE);
-        }
     }
 
     @Override
@@ -570,18 +564,11 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         }
         top = sp.getString("top", ""); // 内存镜像自 SP 回读（sortDisplay 的 indexOf 排序依赖串顺序）
 
-        int from = display.indexOf(info);
         sortDisplay();
-        int to = display.indexOf(info);
-        if (from != to && adapter != null) {
-            // 【P1】ServiceAdapter 自 S1 起持有 display 的副本：置顶必须先同步 adapter 内部
-            // items 再发通知，否则 stableIds 通知序列与数据错位 → 置顶后重复行/丢行，
-            // 可触发 Inconsistency 崩溃（notifyItemMoved 由调用方发，moveItem 内部不加 notify）
-            adapter.moveItem(from, to);
-            adapter.notifyItemMoved(from, to);
-            adapter.notifyItemChanged(from, ServiceAdapter.PAYLOAD_STATE);
-            adapter.notifyItemChanged(to, ServiceAdapter.PAYLOAD_STATE);
-        }
+        // 【P3】置顶移动改由 Compose/LazyGrid 承担：`items(key = serviceId)` 保证身份稳定，
+        // `animateItem()` 以弹簧完成重排 —— 原 adapter.moveItem + notifyItemMoved 那条
+        // 「数据与通知序列必须一致」的纪律由 key 机制天然满足（不再有稳定 id 错位面）。
+        refreshStates();
     }
 
     @Override
@@ -617,6 +604,72 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         return Math.round(getResources().getDisplayMetrics().widthPixels / getResources().getDisplayMetrics().density);
     }
 
+    /**
+     * 【MISSING 12 / SP1】600dp 形态阈值跟随：宽度跨越 600dp 时详情卡先 dismiss 再以新形态重开。
+     *
+     * ## 为什么必须单独跟踪（不能靠 openDetail 时的判断）
+     *
+     * `openDetail` 只在**开卡那一刻**用 [contentWidthDp] 判断一次形态。旋转、折叠屏展开/合拢、
+     * 分屏拖动都会在**卡片已显示期间**改变宽度，此时若形态不跟随，就会出现
+     * 「本该是侧边栏的位置却还挂着底部抽屉」的错配。
+     *
+     * ## 为什么监听挂在内容根视图而不是某个列表控件
+     *
+     * 迁移前这段逻辑挂在 `RecyclerView` 上，因为它同时承担「重算 span」与「跟随 600dp 形态」两件事。
+     * 现在 **span 由 Compose 的 `BoxWithConstraints` 实时算**（列表契约已移交 Compose），
+     * 只余形态跟随这一半职责 —— 故改挂在内容根视图上（宽度即内容区宽度，与旧实现同源）。
+     *
+     * ## 与旧实现逐条一致的两点
+     *
+     * - **首次布局不触发**：`lastWide` 为 null 时 `wideChanged` 必为 false，只建立基准（防开屏误重开）；
+     * - **宽度未变即返回**：`width == oldWidth` 时直接 return。
+     *
+     * 注意此处只比较**阈值态翻转**，不比较具体宽度：590→620dp 时 span 恒为 2 不变，
+     * 但形态已跨过 Bottom/Side 界限，故不能用 span 变化代替该判断（旧实现注释同此意）。
+     *
+     * ## ⚠️ 真机实测补充（2026-09-19）：本逻辑的真实生效场景比想象窄
+     *
+     * 用 `wm size` 与 `settings put system user_rotation` 制造宽度变化时，**本段代码观察到的
+     * `detailDialog` 恒为 null** —— 加日志实测：
+     *
+     * ```
+     * w=1440 oldW=0 newWide=false wideChanged=false dialogNull=true
+     * w=2600 oldW=0 newWide=true  wideChanged=false dialogNull=true
+     * ```
+     *
+     * 即**宿主 window 尺寸剧变时，系统会先 dismiss 掉 Dialog**（对话框是独立 window），
+     * 于是 `reopen` 永远为 null。另外旋转会因 Manifest 未声明 `orientation` 而重建 Activity
+     * （实测 task id 从 t6822 → t6824），Dialog 同样消失。
+     *
+     * **结论**：这段逻辑对「旋转」与「`wm size` 剧变」实际不起作用（两者都表现为卡片关闭后
+     * 用户重开，与迁移前一致）。它真正的生效场景是 Manifest 已声明 `screenSize` 所覆盖的
+     * **窗口 bounds 渐变**：分屏拖动、折叠屏展开/合拢 —— 那时 window 不重建、Dialog 也不被
+     * 系统立即销毁。**该场景尚未在真机上验证**（需要折叠屏或分屏环境）。
+     *
+     * 保留本逻辑的理由：它与迁移前行为一致、无副作用、且在上述渐变场景是必要的。
+     * 若将来确认那些场景也不触发，应连同 `lastWide` 一起删除（避免留下看似有用实则空转的代码）。
+     */
+    private void bindDetailFormFactorWatcher(View root) {
+        final float density = getResources().getDisplayMetrics().density;
+        root.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            int width = right - left;
+            int oldWidth = oldRight - oldLeft;
+            if (width == oldWidth) return;
+
+            boolean newWide = width >= 600 * density;
+            boolean wideChanged = lastWide != null && lastWide != newWide;
+            lastWide = newWide;
+            if (!wideChanged) return;
+
+            // 取"待重开"的服务：仅当弹卡确实显示中才重开（用户可能已手动关闭）
+            AccessibilityServiceInfo reopen =
+                    detailDialog != null && detailDialog.isShowing() && detailServiceId != null
+                            ? detailInfo : null;
+            dismissDetailSheet();
+            if (reopen != null) openDetail(reopen);
+        });
+    }
+
     /** 点击卡片弹出详情：<600dp Bottom Sheet / ≥600dp Side Sheet（WindowMetrics 实时判断，Q2） */
     private void openDetail(AccessibilityServiceInfo info) {
         dismissDetailSheet();
@@ -626,17 +679,37 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         int slash = serviceId.indexOf('/');
         final String pkg = slash > 0 ? serviceId.substring(0, slash) : serviceId;
 
+        // 【P4】详情内容改由 Compose 渲染。回调按**弹卡实例**构造，捕获本卡恒定的
+        // serviceId / info / pkg（与迁移前的闭包捕获同一口径，不经 id 反查）。
+        // 写入路径仍全部由宿主落笔 —— F1/R3 镜像纪律的唯一落点，Compose 只发意图。
+        final ServiceDetailCallback callback = new ServiceDetailCallback() {
+            @Override
+            public void onRestartToggle(boolean checked) {
+                applyRestartToggle(serviceId, checked);
+            }
+
+            @Override
+            public void onPeriodConfirmed(long periodMin) {
+                applyPeriod(serviceId, periodMin);
+            }
+
+            @Override
+            public void onOpenSystemSettings() {
+                openServiceSettings(info, pkg);
+            }
+        };
+
         Dialog dialog;
         View content;
         if (contentWidthDp() < 600) {
             BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
-            content = getLayoutInflater().inflate(R.layout.sheet_service_detail, null, false);
+            content = buildDetailContent(info, callback);
             applySheetInsets(content); // 【MISSING 13】
             sheet.setContentView(content);
             dialog = sheet;
         } else {
             SideSheetDialog side = new SideSheetDialog(requireContext());
-            content = getLayoutInflater().inflate(R.layout.sheet_service_detail, null, false);
+            content = buildDetailContent(info, callback);
             applySheetInsets(content); // 【MISSING 13】
             side.setContentView(content);
             // 平板加宽：默认 sheet 偏窄，改为 500dp（不超过屏宽 60%）
@@ -663,10 +736,10 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
                 detailServiceId = null;
                 detailInfo = null;
                 detailRestartRefresher = null; // 【P3】防引用已销毁视图的刷新闭包
+                detailState = null;            // 【P4】内容状态随之脱钩（Compose 侧持有自身引用，不受影响）
             }
         });
 
-        bindDetail(content, info, pkg, dialog);
         dialog.show();
     }
 
@@ -688,140 +761,194 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
         });
     }
 
-    private void bindDetail(View content, final AccessibilityServiceInfo info, String pkg, Dialog dialog) {
+    /**
+     * 构造详情内容视图：`NestedScrollView`（承载滚动）包 `ComposeView`（承载界面）。
+     *
+     * ## ⚠️ 为什么必须留一层 NestedScrollView —— 一手核实的结论，勿删
+     *
+     * MDC 的 `BottomSheetBehavior.findScrollingChild()` 判定"滚动子视图"的依据是
+     * **`view.isNestedScrollingEnabled()`**（不是 `instanceof NestedScrollingChild`），
+     * 并据此协调「内容滚动 vs 拖动关闭」：
+     *
+     * - `hasScrollingChild()` 决定 `onInterceptTouchEvent` 是否为了拖动而拦截 MOVE；
+     * - `tryCaptureView` 在滚动子视图还能向上滚（`canScrollVertically(-1)`）时
+     *   **放弃**捕获，把滚动让给内容。
+     *
+     * 而 `ComposeView`（→ `AbstractComposeView` → `ViewGroup`）与 `AndroidComposeView`
+     * **都没有调用 `setNestedScrollingEnabled(true)`**（javap 核实），裸挂上去该判定为空，
+     * 上述两条协调全部失效。
+     *
+     * `NestedScrollView` 实现 `NestedScrollingChild3` 且默认启用嵌套滚动（javap 核实），
+     * 与迁移前「内容根是 ScrollView」的结构同构。`ScrollView` 系对子视图按
+     * **UNSPECIFIED 高度**测量，故 Compose 的列可自由展开到真实内容高度 ——
+     * **因此 Compose 侧不得再挂 `verticalScroll`，否则双重滚动。**
+     *
+     * @param info 该弹卡对应的服务（用于图标异步补刷）
+     * @param callback 按弹卡实例构造的意图回调
+     */
+    private View buildDetailContent(AccessibilityServiceInfo info, ServiceDetailCallback callback) {
+        detailState = new ServiceDetailState();
+
+        // ComposeView 取 **Activity** 上下文：AppTheme 经主题属性解析配色，而弹窗会把 Context
+        // 包一层 dialog 主题 overlay，可能让 ?attr/colorSurface* 解析到 overlay 的值。
+        // 迁移前的内容视图是 getLayoutInflater().inflate(...) 得来的，其上下文同样是 Activity。
+        ComposeView composeView = new ComposeView(requireActivity());
+        composeView.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        ServiceDetailBinder.bind(composeView, detailState, callback);
+
+        NestedScrollView scroller = new NestedScrollView(requireActivity());
+        scroller.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        scroller.addView(composeView);
+
+        // 首刷：头部 / 信息块 / 定期重启区
         final String serviceId = info.getId();
-
-        ImageView ivIcon = content.findViewById(R.id.iv_icon);
         IconCache.Entry e = iconCache.peek(serviceId);
-        if (e != null && e.icon != null) {
-            ivIcon.setImageBitmap(e.icon);
-        } else {
-            ivIcon.setImageBitmap(iconCache.placeholderFor(serviceId));
-            // 【M-c】传回调：详情卡在显示时补刷图标与标题，防加载完成后停留占位图
-            iconCache.load(info, () -> {
-                if (detailDialog == null || !detailDialog.isShowing()
-                        || detailServiceId == null || !serviceId.equals(detailServiceId)) return;
-                IconCache.Entry loaded = iconCache.peek(serviceId);
-                if (loaded != null && loaded.icon != null) {
-                    ivIcon.setImageBitmap(loaded.icon);
-                }
-                String app2 = loaded != null ? loaded.appLabel : null;
-                String svc2 = loaded != null ? loaded.serviceLabel : null;
-                String title2 = svc2 != null ? svc2 : (app2 != null ? app2 : IconCache.shortClassName(serviceId));
-                ((TextView) content.findViewById(R.id.tv_app_name)).setText(title2);
-            });
+        detailState.submitHeaderFromCache(serviceId, e);
+        if (e == null || e.icon == null) {
+            // 【M-c】缓存未命中时传回调：弹卡仍在显示且仍是同一服务 → 补刷图标与标题，
+            // 防加载完成后停留占位图。守卫与迁移前逐条一致。
+            iconCache.load(info, () -> reloadDetailHeader(info, serviceId));
         }
-
-        String app = e != null ? e.appLabel : null;
-        String svc = e != null ? e.serviceLabel : null;
-        String title = svc != null ? svc : (app != null ? app : IconCache.shortClassName(serviceId));
-        ((TextView) content.findViewById(R.id.tv_app_name)).setText(title);
-        ((TextView) content.findViewById(R.id.tv_pkg_cls)).setText(serviceId);
-
-        // 基本信息：状态 / 生效范围 / 反馈方式
-        boolean enabled = ServiceAdapter.isEnabledIn(settingValue, serviceId);
-        StringBuilder basic = new StringBuilder();
-        basic.append(getString(R.string.detail_status, getString(enabled
-                ? R.string.detail_status_enabled : R.string.detail_status_disabled))).append('\n');
-        basic.append(getString(R.string.detail_range)).append("：");
-        basic.append(info.packageNames == null ? getString(R.string.range_global)
-                : joinArray(info.packageNames)).append('\n');
-        basic.append(getString(R.string.detail_feedback)).append("：").append(feedbackText(info.feedbackType));
-        ((TextView) content.findViewById(R.id.tv_basic)).setText(basic.toString());
-
-        // 能力/事件/标志 chips（迁移原 flags 位解码代码）
-        bindChips(content.findViewById(R.id.chip_group_caps), capabilityChips(info));
-        bindChips(content.findViewById(R.id.chip_group_events), eventChips(info));
-
-        // 定期重启卡片
-        MaterialSwitch swRestart = content.findViewById(R.id.sw_restart);
-        TextView tvPeriod = content.findViewById(R.id.tv_period);
-        TextView tvLast = content.findViewById(R.id.tv_last_restart);
-        View btnModify = content.findViewById(R.id.btn_modify_period);
-        View btnOpen = content.findViewById(R.id.btn_open_settings);
-
-        // 【P2】开关切换监听器先声明：updateRestartViews 回正开关时需设回同一实例；
-        // 重入刷新经 refreshDetailRestartArea（detailRestartRefresher 已注册，详情卡交互期间恒可重入）
-        final android.widget.CompoundButton.OnCheckedChangeListener restartToggle = (b, isChecked) -> {
-            if (isChecked) {
-                // 【R1】实时取当前值（含"修改周期"刚写入的 periodMin），禁用闭包捕获的旧 cfg 引用；
-                // 已启用态用 cfg.periodMin，未启用态（关→再开）读最近设定周期，防新周期被静默回退
-                RestartPrefs.Config live = RestartPrefs.get(requireContext(), serviceId);
-                long period = live != null ? live.periodMin
-                        : RestartPrefs.peekLastPeriod(requireContext(), serviceId);
-                RestartPrefs.enable(requireContext(), serviceId, period);
-                RestartWorker.schedule(requireContext()); // 幂等
-            } else {
-                RestartPrefs.disable(requireContext(), serviceId);
-            }
-            refreshDetailRestartArea(); // 重入 updateRestartViews：周期行/上次执行/开关回正【P2/P5】
-            refreshStates(); // 卡片描述行同步摘要
-        };
-        Runnable updateRestartViews = () -> {
-            // 【MISSING 14】重启补偿进行中 → 定期重启区域显示"重启中…"过渡态
-            RestartPrefs.Config cur = RestartPrefs.get(requireContext(), serviceId);
-            boolean pending = RestartPrefs.getPendingEnables(requireContext()).containsKey(serviceId);
-            // 【R5】"恢复失败"为终态警示，优先级高于"重启中…"过渡态
-            if (RestartPrefs.getFailed(requireContext()).contains(serviceId)) {
-                tvPeriod.setText(R.string.service_restart_failed);
-            } else if (pending) {
-                tvPeriod.setText(R.string.service_restarting);
-            } else {
-                tvPeriod.setText(cur != null
-                        ? getString(R.string.detail_restart_period, formatPeriod(cur.periodMin))
-                        : getString(R.string.detail_restart_period, "—"));
-            }
-            tvLast.setText(cur != null && cur.lastRestart > 0
-                    ? getString(R.string.detail_restart_last, formatRelative(cur.lastRestart))
-                    : getString(R.string.detail_restart_never));
-            // 【P5】重启补偿进行中 → sw_restart 禁交互（与列表卡口径一致），其余状态恢复可交互；
-            // bindDetail 与 refreshDetailRestartArea 重入刷新共用本 Runnable，两路径全覆盖
-            swRestart.setEnabled(!pending);
-            // 【P2】开关回正：以 SP 真实 enabled 态校准 sw_restart（先摘 listener 再 setChecked 再设回，
-            // 防 setChecked 误触发切换），修复"修改周期"静默 enable 后开关滞留关位、
-            // 服务被周期重启而用户不知情的问题
-            swRestart.setOnCheckedChangeListener(null);
-            swRestart.setChecked(cur != null);
-            swRestart.setOnCheckedChangeListener(restartToggle);
-        };
-        detailRestartRefresher = updateRestartViews; // 【P3】注册供 onChange/refreshStates 重入刷新
-        swRestart.setOnCheckedChangeListener(restartToggle);
-        updateRestartViews.run();
-
-        btnModify.setOnClickListener(v -> showPeriodDialog(serviceId, updateRestartViews));
-
-        btnOpen.setOnClickListener(v -> {
-            try {
-                if (info.getSettingsActivityName() != null && info.getSettingsActivityName().length() > 0) {
-                    startActivity(new Intent().setComponent(new ComponentName(pkg, info.getSettingsActivityName())));
-                } else {
-                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                }
-            } catch (Exception ignored) {
-                try {
-                    startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                } catch (Exception ignored2) {
-                }
-            }
-        });
+        submitDetailInfo(info);
+        detailRestartRefresher = this::submitDetailRestart; // 【P3】注册供 onChange/refreshStates 重入
+        submitDetailRestart();
+        return scroller;
     }
 
-    private void bindChips(com.google.android.material.chip.ChipGroup group, List<String> texts) {
-        group.removeAllViews();
-        if (texts.isEmpty()) {
-            addChip(group, getString(R.string.chip_none));
+    /** 详情头部异步补刷（图标/标签就绪后重提交）。 */
+    private void reloadDetailHeader(AccessibilityServiceInfo info, String serviceId) {
+        if (detailDialog == null || !detailDialog.isShowing()
+                || detailServiceId == null || !serviceId.equals(detailServiceId)) {
             return;
         }
-        for (String t : texts) addChip(group, t);
+        if (detailState != null) {
+            detailState.submitHeaderFromCache(serviceId, iconCache.peek(serviceId));
+        }
     }
 
-    private void addChip(com.google.android.material.chip.ChipGroup group, String text) {
-        Chip chip = new Chip(requireContext());
-        chip.setText(text);
-        chip.setCheckable(false);
-        chip.setChipBackgroundColorResource(android.R.color.transparent);
-        chip.setChipStrokeWidth(getResources().getDisplayMetrics().density);
-        group.addView(chip);
+    /**
+     * 只读信息块：状态 / 生效范围 / 反馈方式 + 两组位解码标签。
+     *
+     * 文案由宿主拼：格式串与资源 id 绑定，且与列表卡片共用同一套
+     * （展示层再拼一遍就是「同功能双实现」）。
+     */
+    private void submitDetailInfo(AccessibilityServiceInfo info) {
+        if (detailState == null) return;
+        String serviceId = info.getId();
+        // 【P6】收口 RestartPrefs.isEnabledIn（原经 ServiceAdapter.isEnabledIn 中转，后者随 Adapter 删除）
+        boolean enabled = RestartPrefs.isEnabledIn(settingValue, serviceId);
+
+        String statusLine = getString(R.string.detail_status, getString(enabled
+                ? R.string.detail_status_enabled : R.string.detail_status_disabled));
+        String rangeLine = getString(R.string.detail_range) + "："
+                + (info.packageNames == null ? getString(R.string.range_global) : joinArray(info.packageNames));
+        String feedbackLine = getString(R.string.detail_feedback) + "：" + feedbackText(info.feedbackType);
+
+        detailState.setInfo(new DetailInfo(
+                java.util.Arrays.asList(statusLine, rangeLine, feedbackLine),
+                capabilityChips(info),
+                eventChips(info)));
+    }
+
+    /**
+     * 定期重启区重入刷新（原 `updateRestartViews` Runnable）。
+     *
+     * 状态优先级与迁移前逐条一致：**恢复失败（终态警示）> 重启中…（过渡态）> 周期行**；
+     * 开关位置取 `RestartPrefs.get(...) != null`；重启补偿进行中开关禁交互。
+     *
+     * 【P2/P5 的差异】**开关"回正"这件事在 Compose 侧不再需要**：
+     * 旧实现要在回正前「先摘 listener → `setChecked` → 再设回」，否则会误触发一次切换。
+     * Compose 的 `Switch(checked = ...)` 位置完全由模型决定、自身不持有状态 ——
+     * 那条纪律不是被绕过，而是**在结构上不存在了**。
+     */
+    private void submitDetailRestart() {
+        if (detailState == null || detailServiceId == null) return;
+        String serviceId = detailServiceId;
+        RestartPrefs.Config cur = RestartPrefs.get(requireContext(), serviceId);
+        boolean pending = RestartPrefs.getPendingEnables(requireContext()).containsKey(serviceId);
+        boolean failed = RestartPrefs.getFailed(requireContext()).contains(serviceId);
+
+        String periodText;
+        if (failed) {
+            periodText = getString(R.string.service_restart_failed);
+        } else if (pending) {
+            periodText = getString(R.string.service_restarting);
+        } else {
+            periodText = getString(R.string.detail_restart_period,
+                    cur != null ? formatPeriod(cur.periodMin) : "—");
+        }
+        String lastText = cur != null && cur.lastRestart > 0
+                ? getString(R.string.detail_restart_last, formatRelative(cur.lastRestart))
+                : getString(R.string.detail_restart_never);
+
+        detailState.setRestart(new DetailRestart(
+                cur != null,
+                !pending,
+                periodText,
+                lastText,
+                failed,
+                // 【R1】预填值必须是"最近一次设定的周期"（含未启用态），不能回落默认值
+                RestartPrefs.peekLastPeriod(requireContext(), serviceId)));
+    }
+
+    // ---------- 详情卡的写入路径（全部落笔在这里，Compose 只发意图） ----------
+
+    /**
+     * 定期重启开关（迁移前 `restartToggle` 闭包体，逐行保留）。
+     *
+     * 【R1】启用时**实时**取当前 `periodMin`（含"修改周期"刚写入的值），禁用闭包捕获的旧 cfg：
+     * 已启用态用 `cfg.periodMin`，未启用态（关→再开）读最近设定周期，防新周期被静默回退成默认值。
+     */
+    private void applyRestartToggle(String serviceId, boolean isChecked) {
+        if (isChecked) {
+            RestartPrefs.Config live = RestartPrefs.get(requireContext(), serviceId);
+            long period = live != null ? live.periodMin
+                    : RestartPrefs.peekLastPeriod(requireContext(), serviceId);
+            RestartPrefs.enable(requireContext(), serviceId, period);
+            RestartWorker.schedule(requireContext()); // 幂等
+        } else {
+            RestartPrefs.disable(requireContext(), serviceId);
+        }
+        refreshDetailRestartArea(); // 重入刷新：周期行 / 上次执行 / 开关位置
+        refreshStates(); // 卡片描述行同步摘要
+    }
+
+    /**
+     * 周期确认后的落笔（迁移前 `showPeriodDialog` 确认分支，逐行保留）。
+     *
+     * 已启用 → 只改周期；未启用 → 启用 + 调度，并 Toast 明示
+     * （防「改周期」静默启用后服务被周期重启而用户不知情）。
+     *
+     * 范围校验在此**再验一次**：对话框已保证合法，但写入路径不接受来自展示层的隐式保证。
+     */
+    private void applyPeriod(String serviceId, long minutes) {
+        if (minutes < RestartPrefs.MIN_PERIOD_MIN || minutes > RestartPrefs.MAX_PERIOD_MIN) return;
+        if (RestartPrefs.get(requireContext(), serviceId) != null) {
+            RestartPrefs.setPeriod(requireContext(), serviceId, minutes);
+        } else {
+            RestartPrefs.enable(requireContext(), serviceId, minutes);
+            RestartWorker.schedule(requireContext());
+            Toast.makeText(requireContext(), R.string.detail_restart_enable, Toast.LENGTH_SHORT).show();
+        }
+        refreshStates();
+    }
+
+    /** "打开系统设置"：优先跳该服务自己的设置页，失败回落系统无障碍设置。 */
+    private void openServiceSettings(AccessibilityServiceInfo info, String pkg) {
+        try {
+            if (info.getSettingsActivityName() != null && info.getSettingsActivityName().length() > 0) {
+                startActivity(new Intent().setComponent(new ComponentName(pkg, info.getSettingsActivityName())));
+            } else {
+                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+            }
+        } catch (Exception ignored) {
+            try {
+                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+            } catch (Exception ignored2) {
+            }
+        }
     }
 
     private List<String> capabilityChips(AccessibilityServiceInfo info) {
@@ -899,98 +1026,6 @@ public class HomeFragment extends Fragment implements ServiceAdapter.Callback {
             sb.append(arr[i]);
         }
         return sb.toString();
-    }
-
-    // ---------- 周期对话框（Q15：数字+单位，30 分钟 ~ 30 天，非法输入禁用确认键） ----------
-
-    private int unitIndexOf(int checkedButtonId) {
-        if (checkedButtonId == R.id.btn_unit_min) return 0;
-        if (checkedButtonId == R.id.btn_unit_hour) return 1;
-        return 2;
-    }
-
-    private void showPeriodDialog(final String serviceId, final Runnable onUpdated) {
-        // 【P2】周期预填改 peekLastPeriod：未启用态读最近设定周期（与 R1 同源），禁用 DEFAULT 兜底覆盖用户自定义周期
-        final long currentPeriod = RestartPrefs.peekLastPeriod(requireContext(), serviceId);
-
-        View view = getLayoutInflater().inflate(R.layout.view_period_input, null, false);
-        final EditText etValue = view.findViewById(R.id.et_value);
-        final com.google.android.material.button.MaterialButtonToggleGroup tgUnit =
-                view.findViewById(R.id.tg_unit);
-        final TextView tvHelper = view.findViewById(R.id.tv_helper);
-
-        // 默认回填当前周期，自动选择合适单位
-        long[] factors = {1L, 60L, 1440L};
-        int unitIdx = 0;
-        if (currentPeriod % 1440 == 0) unitIdx = 2;
-        else if (currentPeriod % 60 == 0) unitIdx = 1;
-        tgUnit.check(unitIdx == 0 ? R.id.btn_unit_min
-                : unitIdx == 1 ? R.id.btn_unit_hour : R.id.btn_unit_day);
-        etValue.setText(String.valueOf(currentPeriod / factors[unitIdx]));
-
-        final MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.period_dialog_title)
-                .setView(view)
-                .setPositiveButton(R.string.action_ok, null)
-                .setNegativeButton(android.R.string.cancel, null);
-
-        final androidx.appcompat.app.AlertDialog dialog = builder.create();
-        dialog.show();
-        final android.widget.Button positive = dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE);
-
-        final long[] f = factors;
-        Runnable validate = () -> {
-            String text = etValue.getText().toString().trim();
-            boolean valid = false;
-            if (!text.isEmpty()) {
-                try {
-                    long value = Long.parseLong(text);
-                    if (value > 0) {
-                        long minutes = value * f[unitIndexOf(tgUnit.getCheckedButtonId())];
-                        valid = minutes >= RestartPrefs.MIN_PERIOD_MIN && minutes <= RestartPrefs.MAX_PERIOD_MIN;
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            positive.setEnabled(valid);
-            boolean empty = text.isEmpty();
-            tvHelper.setText(empty || valid ? R.string.period_dialog_helper : R.string.period_invalid);
-            tvHelper.setTextColor(MaterialColors.getColor(tvHelper, valid || empty
-                    ? com.google.android.material.R.attr.colorOnSurfaceVariant
-                    : androidx.appcompat.R.attr.colorError));
-        };
-        validate.run();
-        etValue.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) { }
-            @Override public void onTextChanged(CharSequence s, int st, int b, int c) { }
-            @Override public void afterTextChanged(Editable s) { validate.run(); }
-        });
-        tgUnit.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) validate.run();
-        });
-
-        positive.setOnClickListener(v -> {
-            try {
-                long value = Long.parseLong(etValue.getText().toString().trim());
-                long minutes = value * f[unitIndexOf(tgUnit.getCheckedButtonId())];
-                if (minutes < RestartPrefs.MIN_PERIOD_MIN || minutes > RestartPrefs.MAX_PERIOD_MIN) return;
-                if (RestartPrefs.get(requireContext(), serviceId) != null) {
-                    RestartPrefs.setPeriod(requireContext(), serviceId, minutes);
-                } else {
-                    RestartPrefs.enable(requireContext(), serviceId, minutes);
-                    RestartWorker.schedule(requireContext());
-                    // 【P2】未启用态"修改周期"确认会静默启用并调度 Worker，必须可感知：
-                    // Toast 明示开启，防服务被周期重启而用户不知情
-                    Toast.makeText(requireContext(), R.string.detail_restart_enable, Toast.LENGTH_SHORT).show();
-                }
-                refreshStates();
-                // 【P2】onUpdated（updateRestartViews）含开关回正：sw_restart 以 SP 真实 enabled 态
-                // 校准为 true，并同步周期行显示
-                onUpdated.run();
-                dialog.dismiss();
-            } catch (NumberFormatException ignored) {
-            }
-        });
     }
 
     // ---------- 展示辅助 ----------

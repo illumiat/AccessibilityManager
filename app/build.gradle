@@ -1,17 +1,21 @@
 plugins {
-    id 'com.android.application'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
     namespace 'com.accessibilitymanager'
-    compileSdk 34
+    // 规范落地基线要求 compileSdk 35（material3 1.5.0-alpha18 的 AAR 元数据）。
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.accessibilitymanager"
         minSdk 24
+        // targetSdk 保持 33：保活链路（前台服务/广播注册）不触碰平台行为变更。
         targetSdk 33
-        versionCode 10
-        versionName "1.1"
+        versionCode 11
+        versionName "1.2"
     }
 
     buildTypes {
@@ -24,15 +28,29 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    buildFeatures {
+        // Compose 为新增：UI 层迁 Compose、业务层保留 Java（daemon/Worker/Prefs 不动）。
+        compose true
+    }
     lint {
         checkReleaseBuilds false
         abortOnError false
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+    }
+}
+
 dependencies {
-    // Material Components (M3) — 传递引入 appcompat/core/fragment/recyclerview 等全部 AndroidX 基座
-    implementation 'com.google.android.material:material:1.13.0'
+    // 设计系统骨架（token + 组件外观），以 api 暴露 material3/ui/foundation。
+    implementation project(':core:designsystem')
+
+    // 过渡期保留：XML 主题属性是主题切换（setTheme）的载体，Compose 侧与 View 侧共用同一份配色。
+    // 全部页面迁移完成后应移除。
+    implementation libs.material
     implementation 'androidx.work:work-runtime:2.9.1'
     implementation 'dev.rikka.shizuku:api:13.1.0'
     implementation 'dev.rikka.shizuku:provider:13.1.0'
