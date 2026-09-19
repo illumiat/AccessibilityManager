@@ -51,3 +51,18 @@ minSdk 24 / targetSdk 33 / compileSdk 35；AGP 8.7.3 / Gradle 8.9（JDK 21 强�
 - 验收手段：`git diff` 审查 + 构建验证 + 逐项对照修复清单
 - **⚠️ lint 在当前工具链下不可用**（多个 AndroidX 构件的 lint.jar 与 AGP 8.7.3 内置 Kotlin 分析 API 二进制不兼容，任务直接崩溃）。
   **不要再把 lint 当作验收依据**；`docs/HANDOVER.md` §8 有完整证据与修法。
+
+## 发布约定（1.2 起）
+
+- **一律用 release 构建 + debug keystore 签名**（不要再用 debug 包：debug 构建实测掉帧率 11.33% vs release 0.35%）：
+  ```bash
+  ./gradlew :app:assembleRelease
+  apksigner sign --ks ~/.android/debug.keystore --ks-pass pass:android \
+    --key-pass pass:android --ks-key-alias androiddebugkey \
+    --out app-release-<版本>.apk app-release-unsigned.apk
+  ```
+  用 debug keystore 签名 → 与已发布版本同签名 → 用户可**直接覆盖安装**，无需卸载。
+- **发布目标是 fork**（`illumiat/AccessibilityManager`），不是上游。上游 `origin` = `WuDi-ZhanShen/AccessibilityManager`，不推送。
+- **流程**：改 `versionCode`/`versionName` → 写 `.codebuddy/release-notes-v<版本>.md` → 提交 → push `main` 与工作分支 → tag `v<版本>` → `gh release create`（notes 用发布说明文件，`--target main`，附 APK）。
+- **发布前必做**：`./gradlew clean :app:assembleRelease` 通过（证明仓库内容可独立编译）。
+- **构建产物与调试截图不得入库**（`.gitignore` 已覆盖 `.gradle/`、`build/`、`.codebuddy/shots/`）。

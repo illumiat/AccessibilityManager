@@ -664,4 +664,51 @@ Switch 间距 8dp、`ShapeTokens.Full` 等价性、`PillRadius`/`M3Section` 确�
 | 2 | **设置页标题用 `headlineMedium`(28sp)** | 规范 §2 的「大标题式顶栏」是 `headlineSmall`(24sp)，无 28sp 这一行。属规范缺口（MD3 的 large top app bar 确用 headlineMedium）还是取值错，**待判定** |
 | 3 | **M3 组件仍带 ripple** | 偏离②只落地到自绘可点区；`Button`/`TextButton`/`Switch`/`SegmentedButton`/`RadioButton` 共 14 处仍是 ripple。已核实 `Button` **不接受 `indication` 参数**，唯一干净干预点是 `LocalIndication` 且需同时挂 `appPress`。**待裁决**（改则影响全站按压手感） |
 | 4 | 规范 §3「相邻目标 ≥8dp」是否适用于上下紧贴的全宽列表行 | 规范未定义（设置页各行 0dp 间距）——**规范缺口** |
-| 5 | 规范 §1「≤3 档字号」按 sp 值还是按 typography 样式计数 | 规范未定义 ——**规范缺口**（本项目按 sp 值执行并已可机械验证） |`
+| 5 | 规范 §1「≤3 档字号」按 sp 值还是按 typography 样式计数 | 规范未定义 ——**规范缺口**（本项目按 sp 值执行并已可机械验证） |
+
+---
+
+## 16. 发布记录：1.2（2026-09-19）
+
+### 16.1 已发布内容
+
+| 项 | 值 |
+|---|---|
+| 提交 | **`ff288f4`** `feat: 1.2 —— UI 全面迁至 Compose + 业务层 Kotlin 化`（116 文件，+9171/−3249） |
+| 分支 | `main` 与 `feat/md3-refactor` **均在 `ff288f4`**（`main` 由 `c45c5aa` fast-forward，无独有内容） |
+| Tag | `v1.2`（annotated） |
+| Release | https://github.com/illumiat/AccessibilityManager/releases/tag/v1.2 |
+| 资产 | `app-release-1.2.apk`（**16.29 MB**，sha256 `f797d16e…`） |
+| 版本号 | `versionCode 11` / `versionName 1.2` |
+| 签名 | debug 证书 SHA-256 `873e18a0…` —— **与 1.0/1.1 相同，可覆盖安装** |
+
+### 16.2 本次发布改变了什么做法（相对 1.0/1.1）
+
+| 项 | 1.0 / 1.1 | **1.2** | 理由 |
+|---|---|---|---|
+| **APK 类型** | `app-debug.apk` | **release 构建 + debug keystore 签名** | debug 构建性能差：同场景实测掉帧率 **11.33% vs 0.35%**、帧时中位数 18ms vs 5ms。体积也从 24.3MB 降到 16.29MB。签名仍用 debug keystore，故兼容覆盖安装 |
+| **仓库卫生** | `.gradle/` 等 16 个构建产物被跟踪 | **已 untrack + .gitignore 生效** | 二进制产物不该进仓 |
+| 调试截图 | 无 `.gitignore` 条目 | `.codebuddy/shots/` 已忽略 | 真机验证产生的过程截图不应入库 |
+
+> **今后发布一律用 release 构建**（构建命令 + 签名方式见 §13.1 的代码块）。这已写进 `AGENTS.md`。
+
+### 16.3 发布后验收（已执行并通过）
+
+- **远端资产 sha256 与本地逐字节一致**（`f797d16e…`）；
+- **下载包的签名验证通过**，证书与 1.1 相同；
+- **包内元数据**：`versionCode='11' versionName='1.2'`，`compileSdkVersion='35'`；
+- **干净的从提交构建**：`./gradlew clean :app:assembleRelease :app:assembleDebug` → BUILD SUCCESSFUL
+  （即仓库内容可独立编译，不依赖本地未提交状态）；
+- 远端 `README.md` 已显示 1.2、截图资产就位。
+
+### 16.4 未完成 / 待办
+
+| # | 事项 | 说明 |
+|---|---|---|
+| 1 | **从 1.1 升级到 1.2 的路径未验完** | 验证做到一半设备 USB 断开（`adb devices` 空，重启 adb server 无效）。已确认的是**签名一致**（这是覆盖安装的必要条件），但「装 1.1 → 覆盖装 1.2 → 配置保留」未走完 |
+| 2 | 发布说明里的「已知遗留」全部仍成立 | 保活链路真机回归未做、折叠屏/分屏未验、弹卡旋转行为与 1.1 一致 |
+| 3 | **截图仍是同一台小米设备的** | `screenshot-phone.jpg`（1440×3200 真实竖屏）与 `screenshot-tablet.png`（`wm size 2600x3200` 模拟的 743dp 宽，**同一台设备**）。若需真实平板截图，应另找设备 |
+
+> ⚠️ **本仓库的 git 身份是仓库级配置**（`git config --local`），因为全局未设：
+> `user.name=illumiat` / `user.email=128163683+illumiat@users.noreply.github.com`
+> （该 noreply 地址经 `gh api user` 核实确属 `illumiat`）。全局配置未被改动。`
