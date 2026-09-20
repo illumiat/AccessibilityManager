@@ -148,7 +148,7 @@ token 层 `...\core\designsystem\src\main\java\com\accessibilitymanager\core\des
 2. **清裸数值**：`ServiceCard.kt:98`（`0.dp`）、`ServiceCard.kt:199`（`1.dp`）、
    `HomeScreen.kt:60`（`CardMaxWidth`）、`M3ListItem.kt:126/129/132`、
    `IconCache.kt:227`（十六进制色值）。
-3. **删未使用字符串**：`home_title` / `service_switch_desc` / `auth_failed_alert` / `list_loading`。
+3. **删未使用字符串**：`home_title` / `service_switch_desc` / `auth_failed_alert`（其中 `list_loading` 已在 1.2.1 删除，见 §17；余 3 条仍属 P6 收尾）。
    > ⚠️ 确认前先查 `<xliff:g>` 与代码内拼接，避免误删。
 4. **删兼容垫片**：`IconCache` 的 `@JvmField`×6、`@JvmStatic`×2（调用方迁完后逐行清理）。
 5. **移除 MDC**：当前剩余使用点 = `HomeFragment.java`（对话框/Sheet/侧边栏）+ `PermissionHelper.kt` + `App.kt` + `IconCache.kt`（主题属性）+ `AppTheme.kt`（主题属性解析）。
@@ -186,7 +186,7 @@ token 层 `...\core\designsystem\src\main\java\com\accessibilitymanager\core\des
 |---|---|---|---|
 | 1 | **lint 在当前工具链下不可用** | 失去一整套静态检查能力 | 见 §8，需单独立项 |
 | 2 | **P4 未做真机验证** | 详情卡的 `NestedScrollView` 高度/滚动、侧边栏宽度、周期对话框交互只在真机可验 | 按 §3 末行清单跑 |
-| 3 | 「跟随壁纸」时**对比度不生效** | `DynamicColors` 无对比度入参 | 待 Compose 侧接管 `dynamicLight/DarkColorScheme` |
+| 3 | 「跟随壁纸」时**对比度不生效** | 跟随系统动态取色不提供对比度入参 | **已裁决取舍**（AGENTS.md「设计意图」已载明），非待修缺陷；保持现状 |
 | 4 | `res/font/` 缺 Roboto 资产 | `AppFontFamily` 暂指系统字体族 | 补 ttf 即切 |
 | 5 | 兼容垫片未清 | `IconCache` 的 `@JvmField`×6、`@JvmStatic`×2 等 | P6 逐行清理 |
 | 6 | **MDC 尚未移除** | 规范 §10 明确 MDC 非落点 | 全部页面迁完后移除 |
@@ -354,7 +354,7 @@ IncompatibleClassChangeError: Found class org.jetbrains.kotlin.analysis.api.reso
 
 | 审查意见 | 核实结论 |
 |---|---|
-| `App.kt` 把 `DynamicColors` 由无条件改为「仅跟随壁纸时应用」，属范围蔓延 | **必要且正确**。旧版无条件叠加动态取色会**盖掉用户选的命名主题**；规划 §3.2 明确「跟随壁纸作为并列选项、不设为默认、不强制」，故必须条件化。已在代码注释说明 |
+| `App.kt` 把 `DynamicColors` 由无条件改为「仅跟随壁纸时应用」，属范围蔓延 | **必要且正确**。旧版无条件叠加动态取色会**盖掉用户选的命名主题**；规划 §3.2 明确「跟随壁纸作为并列选项、不设为默认、不强制」，故必须条件化。已在代码注释说明。**（注：1.2.1 将动态取色调用从 `App` 移至 `MainActivity.onCreate`，按当次持久化主题对单 Activity 应用，见 §17.1）** |
 | `HomeFragment.java:109` `lastWide` 死字段 | 已由修复 1 复活，不再是死字段 |
 
 ### 根因扫描：同类问题还有没有
@@ -368,7 +368,7 @@ IncompatibleClassChangeError: Found class org.jetbrains.kotlin.analysis.api.reso
 | 列表卡片开关（`ServiceCard.kt:145`） | `model.enabled` | 是（经 **ContentObserver** → `postStatesRefresh` → `refreshList`） | 正常 |
 | 搜索框（`HomeScreen.kt:223`） | `state.query` | 是（`HomeListBinder` 内 `state.query = q`） | 正常 |
 | 周期对话框输入/单位（`PeriodDialog.kt:122/144`） | 本层 `remember` 状态 | 是 | 正常 |
-| 单选对话框（`SettingsScreen.kt:263-276`） | `selectedIndex` | 是（选中即 `recreate`） | 正常 |
+| 单选对话框（`SettingsScreen.kt:263-276`） | `selectedIndex` | 是（选择**会镜像进 `ui`**，不再依赖是否重建） | 正常 |
 
 **列表开关的一处差异（留作真机观察项，未改）**：`onToggle` 与迁移前**逐字节相同**，成功路径都不刷新、
 都依赖 ContentObserver。但迁移前 `MaterialSwitch` 是 `CompoundButton`（**自持** checked），
@@ -379,7 +379,7 @@ IncompatibleClassChangeError: Found class org.jetbrains.kotlin.analysis.api.reso
 | 项 | 说明 |
 |---|---|
 | `Entry.placeholder` 字段（`IconCache.kt:53`）| 随占位链删除后成为孤儿字段（无读无写）。按「改动最小化」**未删**，留 P6 一并评估 |
-| `strings.xml` 的 `list_loading` | 定义但零引用。加载态用骨架屏（无文字），故该串是死资源。**注意**：骨架屏是视觉结构、不是纯动效，故不违反「动效非唯一信息通道」；纯属资源噪音，P6 删 |
+| `strings.xml` 的 `list_loading` | **已在 1.2.1 删除**（零引用死串，随文案外移一并清理）。加载态用骨架屏（无文字），与「动效非唯一信息通道」无关；纯资源噪音 |
 | `ServiceCard.kt` 两处裸 dp（`0.dp` / `1.dp`）与 `HomeScreen.kt:60` 的 `500.dp` | 已确认**非本次引入**（会话开始前即存在），属 P6 欠账（见 §6 第 7 条） |
 
 ### 真机观察项（由本轮审查新提出）
@@ -604,14 +604,14 @@ Row 至少 88dp → 减上下内边距 16dp 得 72dp 内容区 → `CenterVertic
 
 | # | 事项 | 说明 |
 |---|---|---|
-| 1 | **规范偏离①「半透明 + 模糊」完全未落地** | `EffectTokens` 的 `OVERLAY_ROLE` / `OVERLAY_ALPHA` / `OverlayBlurRadius` / `OverlayBlurRadiusLowEnd` / `OVERLAY_TRANSITION_MILLIS` / `SOLID_FALLBACK_ROLE` **全部零引用**。因详情弹卡由 MDC `BottomSheetDialog` 承载（用户裁决），它用自己的容器色与 scrim。**这是规范三处偏离里第二处未兑现的**（第一处是共享元素转场） |
+| 1 | **规范偏离①「半透明 + 模糊」未落地，其 token 组已在 1.2.1 删除** | `EffectTokens` 的 `OVERLAY_ROLE` / `OVERLAY_ALPHA` / `OverlayBlurRadius` / `OverlayBlurRadiusLowEnd` / `OVERLAY_TRANSITION_MILLIS` / `SOLID_FALLBACK_ROLE` 在 1.2.1 中整体删除（原为零引用死 token）。根因不变：详情弹卡由 MDC `BottomSheetDialog` 承载（用户裁决），它用自己的容器色与 scrim。**规范三处偏离中：第二处（半透明+模糊）以「删除 token」收口；第一处（共享元素转场）仍放弃** |
 | 2 | **规范 §4.2 弹卡圆角未落地** | `ShapeTokens.BottomSheetTop`（顶角 48dp）零引用，同上原因 |
 | 3 | 分级缩放未落地 | `PRESS_SCALE_LARGE` / `PRESS_SCALE_SMALL` 零引用（现统一用 `PRESS_SCALE`） |
 | 4 | **设置页分组手段与 §4 口诀不符** | 口诀「能点进去 → 卡片」，设置项可点但用列表项 + 留白。改卡片会导致满屏盒子（§17 反模式）。**待裁决** |
 | 5 | 孤儿 token（刻度完整性） | `ShapeTokens` 的 `None`/`LargeIncreased`/`ExtraLargeIncreased`/`ExtraExtraLarge`、`SizeTokens` 的 `IconSmall`/`AppIconSize`/`SwatchDotSize`/`TopBarHeight`、`SpacingTokens` 的 `ContentPadding` 对象 —— **设计系统提供完整刻度是正常形态**，不算缺陷；但 `AppIconSize` 与 `IconContainerSize` 同为 40dp 属重复，建议合并 |
 | 6 | `Entry.placeholder` 字段孤儿 | 随占位链删除后无读无写，按改动最小化未删 |
 | 7 | 空态双实现 | Compose `EmptyState` 实际不可达（`fragment_home.xml` 的 `empty_view` 仍持有空态）—— 已知 P6 项（§5 约束 8） |
-| 8 | 死字符串 4 条 | `home_title` / `service_switch_desc` / `auth_failed_alert` / `list_loading`（P6） |
+| 8 | 死字符串 3 条 | `home_title` / `service_switch_desc` / `auth_failed_alert`（`list_loading` 已在 1.2.1 删除；余 3 条仍属 P6） |
 
 ---
 
@@ -712,3 +712,70 @@ Switch 间距 8dp、`ShapeTokens.Full` 等价性、`PillRadius`/`M3Section` 确�
 > ⚠️ **本仓库的 git 身份是仓库级配置**（`git config --local`），因为全局未设：
 > `user.name=illumiat` / `user.email=128163683+illumiat@users.noreply.github.com`
 > （该 noreply 地址经 `gh api user` 核实确属 `illumiat`）。全局配置未被改动。`
+
+---
+
+## 17. 1.2.1 修复与验证（2026-09-20）
+
+> 1.2.1 是 **修复版**。全部改动已落在 `ad0594e` 之前的工作树上（HEAD = `ad0594e`，工作树干净），
+> 本仓库状态以 `git log` 为准。本节给下一个接手的人判断「哪些能信、哪些不能信」。
+
+### 17.1 本轮已完成改动（分类要点）
+
+**业务层（保活 / 调度 / 权限）**
+
+- `RestartWorker` 卸载清理分支补 `cancelIfIdle`（`executeDue` 与 `compensatePending` 两处同口径）；补偿分支补「应用是否已安装」校验。
+- `RestartWorker` 读回后**无条件**校准 `daemonService.tmpSettingValue`（此前为 `if (after.isNotEmpty())`）。
+  技术要点：观察者先把 `null` 归一为 `""` 再与镜像比较（`daemonService.kt:65-66` / `:82-84`），
+  故镜像 `""` 与「空」在判定上等价；旧写法会让镜像停在刚写入的 `newValue`，与读回实际值不符 →
+  观察者把**自身写入**当外部改动 → 自触发隐患。属修复，非引入风险。
+- `RestartPrefs.enabledCount` 的快照提到循环外一次读取。
+- `PermissionHelper` 提取 `grantCommand(context, withExit)`，两处命令字符串逐字不变；删除 `minSdk 24` 下不可达的 else 分支。
+- `daemonService` 删未用 import 与恒假子条件 `serviceName == null`。
+
+**主题取色**
+
+- 动态取色由 `App` 的进程级 `DynamicColors.applyToActivitiesIfAvailable()` 改为 `MainActivity.onCreate`
+  按当次持久化主题对单个 Activity 应用（修复运行期「切到跟随壁纸不生效 / 切回命名主题回不去」）。
+- prefs 名与键改走 `ThemePref` 访问器（新增 `nightModeOrNull` / `nightMode`）；夜间模式选择镜像进 `ui`。
+
+**UI 与设计系统**
+
+- `M3ListItem` 行高档位改按 `titleMaxLines` 与 `supportingMaxLines` 两个上限推导（`supportingMaxLines = 3` 生效；`= 2` 与无 supporting 的调用方档位不变）。
+- `M3AppIcon` 位图分支补形状裁剪（与占位分支同形状）；占位分支加 `clearAndSetSemantics {}`。
+- `M3SectionHeader` 补 `heading()` 语义。
+- `PressFeedback` 补 focus / hover 描边（用 `Modifier.border`；compose-ui 不存在 `drawOutline`，已在技能与注释中记明）。
+- `ServiceCard` 锁定按钮：标签挂容器且两种状态都提供；未启用时不再声明 `Role.Button`。
+- `SettingsScreen` 水平内缩收敛到唯一归属，消除「组件侧 32dp / 非组件侧 16dp」错位。
+- `PeriodDialog` 换成溢出前置判定（Long 回绕不再能绕过校验）。
+- `AppTheme` 角色查询提取为 `ColorSchemeRoles`；`remember` 的 key 纳入 `context.theme`。
+- 删除 `showsWarning`、删除 `EffectTokens` 的 overlay 组；`SizeTokens.IconSmall` 18→20dp。
+- 依赖：`work` / `shizuku` 收编进版本目录 `libs.versions.toml`；删除零引用的 `coreKtx` / `window` / `lifecycle`。
+- 删除死方法 `updateRestartSummary`、死串 `list_loading`。
+- `ThemeName` / `ContrastLevel` 面向用户文案移出设计系统库，改由 app 层 `labelRes()` 映射 + `strings.xml` 资源。
+
+### 17.2 真机验证结果（已做）
+
+设备与 1.2 回归同机（23116PN5BC / Android 16 / SDK 36）。
+
+- **覆盖安装**：release 包用 debug keystore 签名，证书 SHA-256 与 1.2 一致 → 覆盖安装成功且配置保留。
+- **安装未掉线**：覆盖安装后 `Settings.Secure.enabled_accessibility_services` 仍是同样 7 条。
+- **守护者状态**：`daemonService` 作为前台服务运行；应用托管的 7 个服务与系统表完全一致。
+- **保活链路 A/B 对照实验**：向该设置键写入一个非法探针条目后 —— 守护者在跑时，值被补回为托管服务集合；守护者被 `force-stop` 后，值为 `null`（无人补回）。两组唯一差别是守护者，故补回可归因于本应用。
+- **设置页水平内缩**：用 `uiautomator` 的 `bounds` 数值验证，标题 / 副标题 / 列表项文本左边界统一在 16dp。
+
+### 17.3 仍未验证 / 已知限制（如实列）
+
+- 灭屏 / 亮屏触发、伪关闭、权限撤销、并发（保活与补偿链路）。
+- 动态取色运行期切换「方向 B」：进程以「跟随壁纸」启动时切回命名主题，overlay 与 `setTheme` 的先后次序谁胜，未验证。
+- 评审提到的「三行策略文案是否溢出」未在真机量过。
+- 卡片外壳提取（`ServiceDetailScreen`）的外观等价未逐项比对。
+- lint 在当前工具链（AGP 8.7.3 + compose）下仍不可用，不作为验收依据。
+
+### 17.4 与既有文档的订正（本次同步）
+
+- 见 §6 第 3 条：「跟随壁纸」对比度改为**已裁决取舍**（非待修缺陷）。
+- 见 §11 根因扫描表：单选对话框「选中即 recreate」的断言无依据，改为「选择会镜像进 `ui`，不再依赖是否重建」。
+- 见 §4 第 3 条、§10、`§14.4 第 8 条`：死串 `list_loading` 已在 1.2.1 删除（余 3 条仍属 P6）。
+- 见 §14.4 第 1 条：`EffectTokens` 的 overlay 组已在 1.2.1 删除（原为零引用死 token），规范偏离①以「删除 token」收口。
+- 见 §11「经核实后判定无需改」：`DynamicColors` 调用位置在 1.2.1 由 `App` 移至 `MainActivity.onCreate`（见本節 17.1）。
