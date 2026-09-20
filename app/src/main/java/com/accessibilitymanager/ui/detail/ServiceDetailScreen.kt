@@ -3,9 +3,11 @@ package com.accessibilitymanager.ui.detail
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -231,15 +233,19 @@ private fun BasicInfoCard(info: DetailInfo) {
 }
 
 /**
- * 卡片外壳（基本信息卡与定期重启卡共用）。
+ * 卡片外壳（基本信息卡与定期重启卡**共用**，避免两份相同 Surface 配置）。
  *
  * 底色取 `surfaceContainerLow` —— 规范 §11.1：叠加层内的卡片用低一档容器色，
  * **靠角色分层，不靠 `surfaceTint` 叠色、也不靠阴影**（静止态 elevation = 0）。
+ *
+ * `headerContent` 为标题行右侧的自定义槽（如定期重启卡的 `Switch`）；不传则为纯标题。
+ * 外观参数（颜色 / 形状 / 描边 / 内边距）与旧实现逐项一致。
  */
 @Composable
 private fun DetailCard(
     title: String,
-    content: @Composable () -> Unit,
+    headerContent: (@Composable RowScope.() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -248,11 +254,18 @@ private fun DetailCard(
         border = BorderStroke(SizeTokens.Hairline, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(modifier = Modifier.padding(SpacingTokens.lg)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
+                )
+                headerContent?.invoke(this)
+            }
             Spacer(Modifier.height(SpacingTokens.sm))
             content()
         }
@@ -314,67 +327,51 @@ private fun RestartCard(
     onModifyPeriod: () -> Unit,
 ) {
     val switchDescription = stringResource(R.string.detail_restart_enable)
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = ShapeTokens.Medium,
-        border = BorderStroke(SizeTokens.Hairline, MaterialTheme.colorScheme.outlineVariant),
+    // 卡片外壳复用 [DetailCard]（标题行 + 右侧 Switch），正文整体移入 content 槽。
+    DetailCard(
+        title = stringResource(R.string.detail_restart_group),
+        headerContent = {
+            Switch(
+                checked = restart.enabled,
+                onCheckedChange = onToggle,
+                enabled = restart.toggleEnabled,
+                modifier = Modifier.semantics { contentDescription = switchDescription },
+            )
+        },
     ) {
-        Column(modifier = Modifier.padding(SpacingTokens.lg)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.detail_restart_group),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = restart.enabled,
-                    onCheckedChange = onToggle,
-                    enabled = restart.toggleEnabled,
-                    modifier = Modifier.semantics { contentDescription = switchDescription },
-                )
-            }
+        Text(
+            text = stringResource(R.string.detail_restart_desc),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
-            Spacer(Modifier.height(SpacingTokens.sm))
+        Spacer(Modifier.height(SpacingTokens.sm))
+        Text(
+            text = restart.periodText,
+            style = MaterialTheme.typography.bodyMedium,
+            // 失败态用 error 色 —— 这是**状态**而非层级差异；且颜色之外还有文字
+            // （periodText 本身即「恢复失败」），满足「不得用颜色作为唯一信息通道」。
+            color = if (restart.failed) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+        )
+
+        Spacer(Modifier.height(SpacingTokens.xs))
+        Text(
+            text = restart.lastText,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        Spacer(Modifier.height(SpacingTokens.sm))
+        // 同样不声明 heightIn（M3 组件自带 48dp 触控兜底），理由见「打开系统设置」处的注释。
+        TextButton(onClick = onModifyPeriod) {
             Text(
-                text = stringResource(R.string.detail_restart_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = stringResource(R.string.detail_restart_modify),
+                style = MaterialTheme.typography.labelLarge,
             )
-
-            // 说明：周期行与上次执行行都取「卡片正文」档（bodyMedium + onSurfaceVariant）。
-            // §2 的对照表里没有「卡片内的键值数据」这一行，故取表内最近邻，
-            // 并作为**规范的已知缺口**记录在案（§18：规范没写的按 MD3 默认值做，然后记下来）。
-            Spacer(Modifier.height(SpacingTokens.sm))
-            Text(
-                text = restart.periodText,
-                style = MaterialTheme.typography.bodyMedium,
-                // 失败态用 error 色 —— 这是**状态**而非层级差异；且颜色之外还有文字
-                // （periodText 本身即「恢复失败」），满足「不得用颜色作为唯一信息通道」。
-                color = if (restart.failed) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-            )
-
-            Spacer(Modifier.height(SpacingTokens.xs))
-            Text(
-                text = restart.lastText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(Modifier.height(SpacingTokens.sm))
-            // 同样不声明 heightIn（M3 组件自带 48dp 触控兜底），理由见「打开系统设置」处的注释。
-            TextButton(onClick = onModifyPeriod) {
-                Text(
-                    text = stringResource(R.string.detail_restart_modify),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
         }
     }
 }

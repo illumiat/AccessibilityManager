@@ -20,8 +20,10 @@ object ThemeCatalog {
     /**
      * 取主题样式 id。
      *
-     * [ThemeName.WALLPAPER] 返回基样式：壁纸取色是**运行时**行为
-     * （API 31+ 由 `DynamicColors` 在 Activity 创建时叠加），静态资源无法预先算出。
+     * [ThemeName.WALLPAPER] 忽略 `contrast` 参数，统一返回品牌默认基样式：
+     * 属已裁决取舍（「跟随壁纸」的对比度暂不生效），非待修缺陷。
+     * 壁纸动态取色本身是运行时行为（API 31+ 由 `DynamicColors` 叠加），
+     * 故仅以品牌默认样式作静态兜底。
      */
     @JvmStatic
     @StyleRes
@@ -47,7 +49,7 @@ object ThemeCatalog {
             ContrastLevel.HIGH -> R.style.AppTheme_mono_high
         }
 
-        // 壁纸取色：静态兜底用品牌默认样式，运行时由 DynamicColors 叠加。
+        // 已裁决：跟随壁纸的对比度暂不生效 —— 忽略 contrast，统一返回品牌默认基样式作静态兜底。
         ThemeName.WALLPAPER -> R.style.AppTheme
     }
 

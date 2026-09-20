@@ -6,6 +6,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
 
 /**
@@ -32,6 +34,7 @@ fun M3SectionHeader(
         color = MaterialTheme.colorScheme.onSurface,
         modifier = modifier
             .fillMaxWidth()
+            .semantics { heading() }
             .padding(
                 start = SpacingTokens.lg,
                 end = SpacingTokens.lg,

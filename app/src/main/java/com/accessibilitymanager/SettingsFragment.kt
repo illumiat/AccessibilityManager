@@ -158,8 +158,17 @@ class SettingsFragment : Fragment() {
                         selectedIndex = ui.nightMode,
                         onSelect = { index ->
                             // setDefaultNightMode 自身会触发 Activity 重建，无需显式 recreate
-                            ThemePref.setNightMode(requireContext(), index)
-                            App.setThemeMode(index)
+                            // 对话框顺序 [跟随系统, 浅色, 深色] 与三态常量一一对应
+                            val mode = when (index) {
+                                ThemePref.NIGHT_FOLLOW_SYSTEM -> ThemePref.NIGHT_FOLLOW_SYSTEM
+                                ThemePref.NIGHT_LIGHT -> ThemePref.NIGHT_LIGHT
+                                ThemePref.NIGHT_DARK -> ThemePref.NIGHT_DARK
+                                else -> ThemePref.NIGHT_FOLLOW_SYSTEM
+                            }
+                            ThemePref.setNightMode(requireContext(), mode)
+                            App.setThemeMode(mode)
+                            // 与上方四个开关一致：立即镜像选择，避免 setDefaultNightMode 未触发重建时选中项滞后
+                            ui = ui.copy(nightMode = mode)
                             choice = null
                         },
                         onDismiss = { choice = null },
@@ -200,11 +209,6 @@ class SettingsFragment : Fragment() {
         refresh()
     }
 
-    /** 供主页调用：定期重启配置变化后刷新概览行。 */
-    fun updateRestartSummary() {
-        refresh()
-    }
-
     /** 一次性重算全部展示态（授权/判定模式/通知/概览/外观）。 */
     private fun refresh() {
         val ctx = context ?: return
@@ -222,7 +226,7 @@ class SettingsFragment : Fragment() {
             failedAlertVisible = RestartPrefs.getFailed(ctx).isNotEmpty(),
             themeName = ThemePref.theme(ctx),
             contrast = ThemePref.contrast(ctx),
-            nightMode = sp.getInt("theme", ThemePref.NIGHT_FOLLOW_SYSTEM),
+            nightMode = ThemePref.nightMode(ctx),
         )
     }
 

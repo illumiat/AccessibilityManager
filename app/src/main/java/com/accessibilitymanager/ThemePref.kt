@@ -21,7 +21,7 @@ import com.accessibilitymanager.core.designsystem.theme.ThemeName
  */
 object ThemePref {
 
-    private const val SP = "data"
+    internal const val SP = "data"
     private const val KEY_NAME = "ui_theme_name"
     private const val KEY_CONTRAST = "ui_theme_contrast"
     private const val KEY_NIGHT = "theme"
@@ -61,6 +61,18 @@ object ThemePref {
     fun setNightMode(context: Context, mode: Int) {
         sp(context).edit().putInt(KEY_NIGHT, mode).apply()
     }
+
+    /** 已存的夜间三态值；SP 中无该键（未设置）时返回 `null`。App 据此保留「未设置则不覆盖默认主题」。 */
+    @JvmStatic
+    fun nightModeOrNull(context: Context): Int? {
+        val s = sp(context)
+        return if (s.contains(KEY_NIGHT)) s.getInt(KEY_NIGHT, NIGHT_FOLLOW_SYSTEM) else null
+    }
+
+    /** 当前夜间三态值；未设置时返回 [default]（默认 [NIGHT_FOLLOW_SYSTEM]）。 */
+    @JvmStatic
+    fun nightMode(context: Context, default: Int = NIGHT_FOLLOW_SYSTEM): Int =
+        sp(context).getInt(KEY_NIGHT, default)
 
     /**
      * 套用主题。**必须在 `Activity.onCreate` 的 `super.onCreate()` 之前调用。**

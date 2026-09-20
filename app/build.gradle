@@ -29,7 +29,8 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     buildFeatures {
-        // Compose 为新增：UI 层迁 Compose、业务层保留 Java（daemon/Worker/Prefs 不动）。
+        // Compose 为新增：UI 层迁 Compose；业务层已全量 Kotlin 化，
+        // 仅 HomeFragment.java 因承载 View 写入路径而保留 Java。
         compose true
     }
     lint {
@@ -51,7 +52,7 @@ dependencies {
     // 过渡期保留：XML 主题属性是主题切换（setTheme）的载体，Compose 侧与 View 侧共用同一份配色。
     // 全部页面迁移完成后应移除。
     implementation libs.material
-    implementation 'androidx.work:work-runtime:2.9.1'
-    implementation 'dev.rikka.shizuku:api:13.1.0'
-    implementation 'dev.rikka.shizuku:provider:13.1.0'
+    implementation libs.work.runtime
+    implementation libs.shizuku.api
+    implementation libs.shizuku.provider
 }

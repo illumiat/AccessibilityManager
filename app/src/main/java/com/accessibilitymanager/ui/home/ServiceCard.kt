@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.accessibilitymanager.R
@@ -303,6 +305,9 @@ private fun WarningBadge(model: ServiceUiModel) {
  *
  * **触控目标 ≥48dp**：视觉图标 24dp，触控盒 48dp（规范硬性要求，不按元件类型开例外）。
  * 未启用服务时不渲染图标（保留 48dp 占位盒，避免整行宽度抖动）。
+ *
+ * **语义约定**：可读标签挂在容器上、两种状态都提供；仅启用态声明 `Role.Button` 与点击语义
+ * —— 未启用时该节点不可点，不应在语义树里呈现为「按钮角色、无标签」。
  */
 @Composable
 private fun LockAction(
@@ -310,21 +315,32 @@ private fun LockAction(
     onLockClick: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    // `stringResource` 是 @Composable，**不能**在 `semantics {}` 的 lambda 里调用 —— 先取好再挂。
+    val lockDesc = stringResource(R.string.service_lock_desc)
     Box(
         modifier = Modifier
             .size(SizeTokens.MinTouchTarget)
-            .appCombinedClickable(
-                interactionSource = interactionSource,
-                enabled = model.enabled,
-                role = Role.Button,
-                onClick = onLockClick,
+            // 标签挂容器、两种状态都提供：未启用时节点虽不可点，仍带可读标签（无障碍信息可获取）。
+            .semantics { contentDescription = lockDesc }
+            .then(
+                if (model.enabled) {
+                    // 仅启用态声明按钮角色与点击语义 —— 未启用不可点，不应是按钮节点。
+                    Modifier.appCombinedClickable(
+                        interactionSource = interactionSource,
+                        role = Role.Button,
+                        onClick = onLockClick,
+                    )
+                } else {
+                    Modifier
+                },
             ),
         contentAlignment = Alignment.Center,
     ) {
         if (model.enabled) {
             Icon(
                 imageVector = if (model.locked) Icons.Filled.Lock else Icons.Outlined.LockOpen,
-                contentDescription = stringResource(R.string.service_lock_desc),
+                // 标签已在容器上、且覆盖两种状态；此处为装饰性图标，不重复声明语义。
+                contentDescription = null,
                 tint = if (model.locked) {
                     MaterialTheme.colorScheme.primary
                 } else {

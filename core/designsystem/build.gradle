@@ -45,7 +45,6 @@ dependencies {
     api libs.androidx.ui.graphics
     api libs.androidx.compose.foundation
     api libs.androidx.compose.animation
-    api libs.androidx.lifecycle.runtime.ktx
 
     // 过渡期依赖：设计系统需要读取 Android 主题属性（?attr/colorPrimary 等），
     // 让 Compose 与尚未迁移的 View 布局共用同一份配色；属性符号来自 Views 库。

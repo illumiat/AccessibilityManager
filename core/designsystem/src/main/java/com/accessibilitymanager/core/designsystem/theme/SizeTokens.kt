@@ -24,8 +24,8 @@ object SizeTokens {
     /** MD3 标准图标固有尺寸。 */
     val IconDefault: Dp = 24.dp
 
-    /** 内联图标（与文字并排的箭头等）——用满尺寸会压过文字。 */
-    val IconSmall: Dp = 18.dp
+    /** 内联图标（与文字并排的箭头等）——用满尺寸会压过文字（§8 图标表：内联 20dp）。 */
+    val IconSmall: Dp = 20.dp
 
     /** 空态图形尺寸下限（规范 §8「图标与长文本」的图标尺寸表：48–56dp，低对比 `onSurfaceVariant`）。 */
     val EmptyStateIcon: Dp = 56.dp

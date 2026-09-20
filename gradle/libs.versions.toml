@@ -5,9 +5,6 @@ agp = "8.7.3"
 # Kotlin 必须 >= 2.1.20：compose 1.11.0-beta02 与 material3 1.5.0-alpha18 的 POM 均声明 kotlin-stdlib 2.1.20。
 kotlin = "2.1.20"
 
-coreKtx = "1.15.0"
-lifecycleRuntimeKtx = "2.6.1"
-window = "1.3.0"
 junit = "4.13.2"
 
 # ── Compose 版本选择（一手核实结论，勿凭印象改）─────────────────────────────
@@ -33,10 +30,6 @@ work = "2.9.1"
 shizuku = "13.1.0"
 
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-androidx-window = { group = "androidx.window", name = "window", version.ref = "window" }
-
 # Compose 各构件显式钉版本（见上方说明，不用 BOM）
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIcons" }
@@ -51,6 +44,11 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 # 过渡期：View 体系（MDC）——主题属性解析 + 尚未迁移的 XML 布局 + 配色算法生成。
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+# 存量依赖（迁移过渡期保留）—— 见 app/build.gradle。
+work-runtime = { group = "androidx.work", name = "work-runtime", version.ref = "work" }
+shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

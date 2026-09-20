@@ -17,6 +17,8 @@ import androidx.fragment.app.FragmentTransaction
 import com.accessibilitymanager.core.designsystem.component.AppNavigationBar
 import com.accessibilitymanager.core.designsystem.component.NavItem
 import com.accessibilitymanager.core.designsystem.theme.AppTheme
+import com.accessibilitymanager.core.designsystem.theme.ThemeCatalog
+import com.google.android.material.color.DynamicColors
 
 /**
  * 单 Activity 容器（**P2：外壳迁 Compose**）。
@@ -46,6 +48,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         // 主题套用必须在 super.onCreate() 之前：主题属性是静态资源，无法热替换。
         ThemePref.applyTo(this)
+        // 动态取色按当次持久化主题求值、仅对本 Activity 应用一次：
+        // 单 Activity 形式不注册进程级回调，可在运行期随用户切换双向生效
+        // （仅「跟随壁纸」叠加，其余命名主题不被壁纸配色盖掉）。
+        if (ThemeCatalog.needsDynamicColor(ThemePref.theme(this))) {
+            DynamicColors.applyToActivityIfAvailable(this)
+        }
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 

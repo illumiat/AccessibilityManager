@@ -25,8 +25,10 @@ import java.util.Locale
  * @param serviceId 服务 id 原文（`包名/类名`），作为最终兜底
  */
 fun serviceTitle(app: String?, svc: String?, serviceId: String): String {
-    val resolvedApp = app
-    val resolvedSvc = svc ?: resolvedApp ?: IconCache.shortClassName(serviceId)
+    // 与同文件 [placeholderInitial]、[HomeListState.describe] 一致：空串当作「缺失」回落，
+    // 避免 app 名与 label 都为空串时返回空标题。兜底值仍是 [IconCache.shortClassName]。
+    val resolvedApp = app?.takeIf { it.isNotEmpty() }
+    val resolvedSvc = svc?.takeIf { it.isNotEmpty() } ?: resolvedApp ?: IconCache.shortClassName(serviceId)
     return if (resolvedApp != null && resolvedApp != resolvedSvc) {
         "$resolvedApp/$resolvedSvc"
     } else {

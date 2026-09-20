@@ -228,12 +228,12 @@ class HomeListState(
             icon = if (loaded) e.icon?.asImageBitmap() else null,
             iconInitial = placeholderInitial(id),
             enabled = RestartPrefs.isEnabledIn(settingValue, id),
+            // `toggleEnabled` 用**本函数的局部** `restarting`（pending 集合），与模型的派生属性无关。
             toggleEnabled = permissionGranted && !restarting,
             permissionGranted = permissionGranted,
             pinned = topSet.contains(id),
             locked = daemonSet.contains(id),
-            restarting = restarting,
-            failed = failed.contains(id),
+            // `failed` / `restarting` 已由 `descriptionKind` 派生，不再是构造参数（单一来源，见 ServiceUiModel）。
             autoRestored = autoRestored,
         )
     }

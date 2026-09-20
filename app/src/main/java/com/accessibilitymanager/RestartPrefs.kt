@@ -114,8 +114,9 @@ class RestartPrefs private constructor() {
         @JvmStatic
         fun enabledCount(c: Context): Long {
             var n = 0L
-            for (key in sp(c).all.keys) {
-                if (key.endsWith(".enabled") && sp(c).getBoolean(key, false)) n++
+            val all = sp(c).all
+            for ((key, value) in all) {
+                if (key.endsWith(".enabled") && java.lang.Boolean.TRUE == value) n++
             }
             return n
         }

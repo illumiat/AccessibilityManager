@@ -101,10 +101,15 @@ fun PeriodDialog(
 
     val trimmed = text.trim()
     val empty = trimmed.isEmpty()
+    val factor = UnitFactors[unitIndex]
     val value = trimmed.toLongOrNull()
-    val minutes = value?.let { it * UnitFactors[unitIndex] }
-    val valid = value != null && value > 0L && minutes != null &&
-        minutes >= RestartPrefs.MIN_PERIOD_MIN && minutes <= RestartPrefs.MAX_PERIOD_MIN
+    // 溢出前置判定：先卡 `value > MAX_PERIOD_MIN / factor`，超界即拒绝，
+    // 使 `value * factor` 的 Long 回绕值不可能进入合法区间（如 307445734561825861 小时会
+    // 回绕成 44 分钟被旧逻辑放行）。卡住后 `value * factor` 必在 [factor, MAX] 内、无溢出。
+    val minutes = value?.let { v ->
+        if (v > 0L && v <= RestartPrefs.MAX_PERIOD_MIN / factor) v * factor else null
+    }
+    val valid = minutes != null && minutes >= RestartPrefs.MIN_PERIOD_MIN
     val showError = !valid && !empty
 
     AlertDialog(

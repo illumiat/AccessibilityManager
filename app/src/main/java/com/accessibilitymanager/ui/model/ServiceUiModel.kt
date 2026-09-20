@@ -68,12 +68,18 @@ data class ServiceUiModel(
     val permissionGranted: Boolean,
     val pinned: Boolean,
     val locked: Boolean,
-    val restarting: Boolean,
-    val failed: Boolean,
     val autoRestored: Boolean,
 ) {
-    /** 是否显示警示角标（终态失败或窗口内已自动恢复）。 */
-    val showsWarning: Boolean get() = failed || autoRestored
+    /**
+     * 失败态（单一来源：[descriptionKind]）。
+     *
+     * `failed` / `restarting` 由 [descriptionKind] 派生，不再独立存储 —— 杜绝「同优先级语义
+     * 两套表示」分叉（如构造出 `failed = true` 但 `descriptionKind` 不是
+     * [ServiceDescKind.FAILED]）。生产者 [HomeListState.describe] 的优先级
+     * `FAILED > RESTARTING > …` 已保证二者恒与 [descriptionKind] 一致。
+     */
+    val failed: Boolean get() = descriptionKind == ServiceDescKind.FAILED
+    val restarting: Boolean get() = descriptionKind == ServiceDescKind.RESTARTING
 
     /** 警示角标文案 —— 由 UI 层映射为字符串资源（模型不持有文案）。 */
     val warning: WarningKind?

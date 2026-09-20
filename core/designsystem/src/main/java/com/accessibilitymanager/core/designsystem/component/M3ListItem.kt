@@ -41,7 +41,9 @@ import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
  * ## 行高只取三档
  *
  * 单行 56 / 双行 72 / 三行 88 dp（规范 §3「页面骨架」），不出现第四种。
- * 高度按「主文本 + 支持文本」各自的行数上限推导，不由调用方自报。
+ * 档位按 `titleMaxLines` 与 `supportingMaxLines` 两个上限推导：
+ * 任一达 3 → 三行档；其次「有 supporting」→ 双行档；否则单行档。
+ * 该值为 `heightIn(min = …)` 的**最小**高度，内容超出时实际更高（非固定值）。
  */
 @Composable
 fun M3ListItem(
@@ -55,9 +57,8 @@ fun M3ListItem(
     onClick: (() -> Unit)? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
-    val lines = 1 + if (supporting != null) 1 else 0
     val minHeight = when {
-        titleMaxLines >= 3 || lines >= 3 -> ListRowHeight.Triple
+        titleMaxLines >= 3 || (supporting != null && supportingMaxLines >= 3) -> ListRowHeight.Triple
         supporting != null -> ListRowHeight.Double
         else -> ListRowHeight.Single
     }

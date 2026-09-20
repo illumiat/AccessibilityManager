@@ -1,6 +1,7 @@
 package com.accessibilitymanager.ui.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import com.accessibilitymanager.R
+import com.accessibilitymanager.ThemePref
 import com.accessibilitymanager.core.designsystem.component.M3ListItem
 import com.accessibilitymanager.core.designsystem.component.M3SectionHeader
 import com.accessibilitymanager.core.designsystem.theme.ContrastLevel
@@ -55,6 +57,13 @@ data class SettingsUiState(
 /**
  * 设置页（规范 §5「表单：≥4 字段 → 独立页面」）。
  *
+ * ## 水平内缩约定（唯一归属）
+ *
+ * 本页**水平内缩的唯一归属是列表组件自身**：[M3ListItem] / [M3SectionHeader] 内部各自带
+ * `SpacingTokens.lg`。页面级 `Column` **不得再叠一层水平内缩**，否则列表项 / 分节标题会变成
+ * 32dp，与无内缩的页面标题错位 16dp。页面里的非组件直接内容（大标题、副标题、页脚版本行）
+ * 各自显式补 `SpacingTokens.lg`，使所有元素左边界对齐到同一 dp。
+ *
  * ## 分组手段（规范 §4）—— **实际用的是「列表项 + 留白」，不是卡片**
  *
  * 本文件**不含 `Card`**（无 `Card` import），每个设置项由 [M3ListItem] 渲染。
@@ -73,6 +82,15 @@ data class SettingsUiState(
  *
  * 用 `titleMedium` + `onSurface`（规范 §2「区块标题」）。
  * **原实现用的是 `labelLarge` + `colorPrimary`**，两处都不对：字号偏小、颜色让标题与开关抢注意力。
+ *
+ * ## 水平内缩的唯一归属
+ *
+ * 列表项与分节标题的**水平内缩由设计系统组件自身声明**（`SpacingTokens.lg`），
+ * 页面**不得**再叠一层；页面里非组件的直接内容（大标题 / 副标题 / 页脚版本行）
+ * 各自声明同一个 token，与组件左边界对齐。
+ *
+ * 反面教材：本页曾同时存在「页面级 lg」与「组件内 lg」→ 组件侧实际 32dp、
+ * 非组件侧 16dp，标题与列表行左边界错位 16dp。
  *
  * @param onOpenNotificationSettings 通知权限行点击（跳系统通知设置）
  */
@@ -94,8 +112,11 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = SpacingTokens.lg),
+            .verticalScroll(rememberScrollState()),
+        // ⚠️ 此处**不得**再声明水平内缩：水平内缩的唯一归属是内容自身 ——
+        // 设计系统组件（M3ListItem / M3SectionHeader）自带 `SpacingTokens.lg`，
+        // 页面里非组件的直接内容（标题 / 副标题 / 页脚）各自声明同一个 token。
+        // 页面级再叠一层会让组件侧变成 32dp、非组件侧停在 16dp，两者左边界错位。
     ) {
         // 页面标题：一屏一个主角 → 这里是"设置"本身（大标题），故不再叠顶栏标题
         Text(
@@ -103,6 +124,8 @@ fun SettingsScreen(
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(
+                start = SpacingTokens.lg,
+                end = SpacingTokens.lg,
                 top = SpacingTokens.lg,
                 bottom = SpacingTokens.xs,
             ),
@@ -111,6 +134,7 @@ fun SettingsScreen(
             text = stringResource(R.string.settings_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = SpacingTokens.lg),
         )
 
         // ── 保活组 ──
@@ -204,8 +228,8 @@ fun SettingsScreen(
             title = stringResource(R.string.setting_night_mode),
             supporting = stringResource(
                 when (ui.nightMode) {
-                    1 -> R.string.theme_light
-                    2 -> R.string.theme_dark
+                    ThemePref.NIGHT_LIGHT -> R.string.theme_light
+                    ThemePref.NIGHT_DARK -> R.string.theme_dark
                     else -> R.string.theme_follow_system
                 },
             ),
@@ -217,6 +241,7 @@ fun SettingsScreen(
                 text = stringResource(R.string.version_line),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = SpacingTokens.lg),
             )
         }
     }
@@ -270,7 +295,7 @@ fun SingleChoiceDialog(
             Column(modifier = Modifier.fillMaxWidth()) {
                 options.forEachIndexed { index, label ->
                     val selected = index == selectedIndex
-                    androidx.compose.foundation.layout.Row(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .selectable(

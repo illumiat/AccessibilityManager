@@ -64,11 +64,21 @@ class RestartWorker(
 
     /** 开头检查 pendingEnable 残留，立即补 enable【盲审修订 P0】 */
     private fun compensatePending(ctx: Context) {
+        val pm = ctx.packageManager
         for ((id, ts) in RestartPrefs.getPendingEnables(ctx)) {
             val age = System.currentTimeMillis() - ts
             if (ts > 0 && age > RestartPrefs.pendingStaleMs()) {
                 RestartPrefs.removePendingEnable(ctx, id)
                 RestartPrefs.markFailed(ctx, id)
+                continue
+            }
+            // 已卸载服务不再尝试 enable（与 executeDue 卸载清理同口径），并清理其配置与 pending 防残留
+            val slash = id.indexOf('/')
+            val pkg = if (slash > 0) id.substring(0, slash) else id
+            if (!isPackageInstalled(pm, pkg)) {
+                RestartPrefs.removeCompletely(ctx, id)
+                // 与 executeDue 的卸载分支同口径：最后一个启用配置被清理后取消周期任务，恢复零主动唤醒
+                RestartWorker.cancelIfIdle(ctx)
                 continue
             }
             val cur = readSettingValue(ctx)
@@ -106,7 +116,9 @@ class RestartWorker(
             val slash = id.indexOf('/')
             val pkg = if (slash > 0) id.substring(0, slash) else id
             if (!isPackageInstalled(pm, pkg)) {
+                // 最后一个启用配置被卸载清理后取消周期任务，恢复零主动唤醒（与 cancelIfIdle 文档不变式一致）
                 RestartPrefs.removeCompletely(ctx, id)
+                RestartWorker.cancelIfIdle(ctx)
                 continue
             }
 
@@ -213,7 +225,9 @@ class RestartWorker(
             daemonService.tmpSettingValue = newValue
             writeSettingValue(ctx, newValue)
             val after = readSettingValue(ctx)
-            if (after.isNotEmpty()) daemonService.tmpSettingValue = after
+            // 读回后无条件以实际值校准镜像（与 daemonService.tryEnable 的 "if (after != null) tmpSettingValue = after" 对齐，
+            // 修复重构前 Java 侧 !after.isEmpty() vs after != null 的分叉；空串亦为真实读回值，须照实校准防镜像失真）
+            daemonService.tmpSettingValue = after
             RestartPrefs.containsService(after, id)
         } catch (e: Exception) {
             // 【P6-c】异常路径镜像回滚为实际值（与 daemon tryEnable 的 R3 回滚对称），防失真

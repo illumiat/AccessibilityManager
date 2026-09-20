@@ -62,14 +62,17 @@ fun M3AppIcon(
             Image(
                 bitmap = icon,
                 contentDescription = null, // 由容器统一承载，避免重复播报
-                modifier = Modifier.size(size),
+                modifier = Modifier
+                    .size(size)
+                    .clip(ShapeTokens.Full),
             )
         } else {
             Box(
                 modifier = Modifier
                     .size(size)
                     .clip(ShapeTokens.Full)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    .clearAndSetSemantics {},
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

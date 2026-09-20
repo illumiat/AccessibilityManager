@@ -1,6 +1,5 @@
 package com.accessibilitymanager
 
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -95,7 +94,7 @@ class daemonService : Service() {
         val restored = ArrayList<String>() // 【MISSING 11】本次自动恢复的服务 id
         for (serviceName in serviceNames) {
             // 【M1】启用判定收口 RestartPrefs.isEnabledIn（":" 切段精确匹配，消除 contains 子串误判）
-            if (serviceName == null || serviceName == "null" || serviceName.isEmpty() ||
+            if (serviceName == "null" || serviceName.isEmpty() ||
                 RestartPrefs.isEnabledIn(s, serviceName) || !l.contains(serviceName)
             ) {
                 continue

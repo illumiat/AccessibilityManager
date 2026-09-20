@@ -4,8 +4,6 @@ import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
@@ -33,31 +31,24 @@ class PermissionHelper private constructor() {
 
     companion object {
 
+        /** 构造 "pm grant" 授权命令字符串；Shizuku 路径传 withExit=true 追加 "\nexit\n"（与 root 路径 writeBytes("$cmd\nexit\n") 同形）【重构订正】 */
+        private fun grantCommand(context: Context, withExit: Boolean = false): String {
+            val base = "pm grant " + context.packageName + " android.permission.WRITE_SECURE_SETTINGS"
+            return if (withExit) base + "\nexit\n" else base
+        }
+
         /** @return true = 已授予 */
         @JvmStatic
         fun hasWritePermission(context: Context): Boolean {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                return context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) ==
-                    PackageManager.PERMISSION_GRANTED
-            }
-            var info = PackageInfo()
-            try {
-                info = context.packageManager.getPackageInfo(
-                    context.packageName,
-                    PackageManager.GET_CONFIGURATIONS,
-                )
-            } catch (ignored: PackageManager.NameNotFoundException) {
-            }
-            // `PackageInfo.applicationInfo` 是可变字段（平台类型中的 public field），
-            // Kotlin 无法智能转换 —— 捕获到局部变量后再判空，语义与原实现一致（null 即 false）。
-            val ai = info.applicationInfo ?: return false
-            return (ai.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+            // minSdk 24 ≥ M(23)，SDK_INT >= M 恒真，原 else 分支（PackageInfo / FLAG_SYSTEM 系统应用判定）不可达已删除
+            return context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) ==
+                PackageManager.PERMISSION_GRANTED
         }
 
         /** 未授权时的三选一引导对话框（迁移自旧 createPermissionDialog） */
         @JvmStatic
         fun showPermissionDialog(context: Context) {
-            val cmd = "pm grant " + context.packageName + " android.permission.WRITE_SECURE_SETTINGS"
+            val cmd = grantCommand(context)
             MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.perm_dialog_title)
                 .setMessage(context.getString(R.string.perm_dialog_message, cmd))
@@ -124,12 +115,7 @@ class PermissionHelper private constructor() {
                     try {
                         val p = Shizuku.newProcess(arrayOf("sh"), null, null)
                         val out: OutputStream = p.outputStream
-                        out.write(
-                            (
-                                "pm grant " + context.packageName +
-                                    " android.permission.WRITE_SECURE_SETTINGS\nexit\n"
-                                ).toByteArray(),
-                        )
+                        out.write(grantCommand(context, withExit = true).toByteArray())
                         out.flush()
                         out.close()
                         p.waitFor()
