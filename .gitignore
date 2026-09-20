@@ -14,3 +14,6 @@ local.properties
 
 # 真机验证截图（过程产物；正式截图在 docs/screenshots/）
 .codebuddy/shots/
+
+# Kotlin 构建守护进程会话/错误日志
+.kotlin/
