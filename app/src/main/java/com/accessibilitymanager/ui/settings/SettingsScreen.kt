@@ -216,12 +216,12 @@ fun SettingsScreen(
         M3SectionHeader(stringResource(R.string.group_appearance))
         M3ListItem(
             title = stringResource(R.string.setting_theme),
-            supporting = ui.themeName.label,
+            supporting = stringResource(ui.themeName.labelRes()),
             onClick = onThemeRowClick,
         )
         M3ListItem(
             title = stringResource(R.string.setting_contrast),
-            supporting = ui.contrast.label,
+            supporting = stringResource(ui.contrast.labelRes()),
             onClick = onContrastRowClick,
         )
         M3ListItem(
@@ -329,4 +329,26 @@ fun SingleChoiceDialog(
             }
         },
     )
+}
+
+/**
+ * [ThemeName] 枚举常量 → 字符串资源（单一来源，app 层持有；
+ * 设计系统库不持有面向用户的文案，故映射放在此处而非 [com.accessibilitymanager.core.designsystem.theme.ThemeName]）。
+ */
+fun ThemeName.labelRes(): Int = when (this) {
+    ThemeName.BRAND -> R.string.theme_brand
+    ThemeName.NEUTRAL -> R.string.theme_neutral
+    ThemeName.MONO -> R.string.theme_mono
+    ThemeName.WALLPAPER -> R.string.theme_wallpaper
+}
+
+/**
+ * [ContrastLevel] 枚举常量 → 字符串资源（单一来源，app 层持有；
+ * 设计系统库不持有面向用户的文案，故映射放在此处而非 [com.accessibilitymanager.core.designsystem.theme.ContrastLevel]）。
+ */
+fun ContrastLevel.labelRes(): Int = when (this) {
+    ContrastLevel.REDUCED -> R.string.contrast_reduced
+    ContrastLevel.DEFAULT -> R.string.contrast_default
+    ContrastLevel.MEDIUM -> R.string.contrast_medium
+    ContrastLevel.HIGH -> R.string.contrast_high
 }

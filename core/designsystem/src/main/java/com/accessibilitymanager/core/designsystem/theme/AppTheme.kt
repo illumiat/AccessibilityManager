@@ -27,15 +27,15 @@ import com.google.android.material.R as MaterialR
  * 主题的**选择与切换**由 View 层负责（Android 只能通过 `setTheme` + Activity 重建切换），
  * Compose 侧只消费结果。
  */
-enum class ThemeName(val key: String, val label: String) {
+enum class ThemeName(val key: String) {
     /** 品牌主题，默认。 */
-    BRAND("brand", "品牌"),
+    BRAND("brand"),
     /** 中性灰，供不喜欢彩色界面的用户。 */
-    NEUTRAL("neutral", "中性"),
+    NEUTRAL("neutral"),
     /** 单色（纯灰阶，只有明度差异）。 */
-    MONO("mono", "单色"),
+    MONO("mono"),
     /** 跟随壁纸（动态取色）。 */
-    WALLPAPER("wallpaper", "跟随壁纸"),
+    WALLPAPER("wallpaper"),
 }
 
 /**
@@ -44,15 +44,15 @@ enum class ThemeName(val key: String, val label: String) {
  * **不得实现成两套硬编码配色** —— 它是同一套调的参数，由算法生成
  * （见构建期生成器 `PaletteGeneratorTest`）。
  */
-enum class ContrastLevel(val value: Double, val label: String) {
+enum class ContrastLevel(val value: Double) {
     /** 降低 —— 对高对比敏感、偏头痛等。 */
-    REDUCED(-1.0, "降低"),
+    REDUCED(-1.0),
     /** 默认 —— 常规观感。 */
-    DEFAULT(0.0, "默认"),
+    DEFAULT(0.0),
     /** 较高 —— 轻度视力障碍。 */
-    MEDIUM(0.5, "较高"),
+    MEDIUM(0.5),
     /** 最高 —— 强无障碍需求。 */
-    HIGH(1.0, "最高"),
+    HIGH(1.0),
 }
 
 /**

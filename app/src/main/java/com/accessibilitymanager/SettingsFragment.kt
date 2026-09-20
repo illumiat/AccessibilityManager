@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment
 import com.accessibilitymanager.core.designsystem.theme.AppTheme
 import com.accessibilitymanager.core.designsystem.theme.ContrastLevel
 import com.accessibilitymanager.core.designsystem.theme.ThemeName
+import com.accessibilitymanager.ui.settings.labelRes
 import com.accessibilitymanager.ui.settings.SettingsScreen
 import com.accessibilitymanager.ui.settings.SettingsUiState
 import com.accessibilitymanager.ui.settings.SingleChoiceDialog
@@ -125,7 +126,7 @@ class SettingsFragment : Fragment() {
                 when (choice) {
                     Choice.THEME -> SingleChoiceDialog(
                         title = getString(R.string.setting_theme),
-                        options = ThemeName.entries.map { it.label },
+                        options = ThemeName.entries.map { getString(it.labelRes()) },
                         selectedIndex = ThemeName.entries.indexOf(ui.themeName),
                         onSelect = { index ->
                             ThemePref.setTheme(requireContext(), ThemeName.entries[index])
@@ -138,7 +139,7 @@ class SettingsFragment : Fragment() {
 
                     Choice.CONTRAST -> SingleChoiceDialog(
                         title = getString(R.string.setting_contrast),
-                        options = ContrastLevel.entries.map { it.label },
+                        options = ContrastLevel.entries.map { getString(it.labelRes()) },
                         selectedIndex = ContrastLevel.entries.indexOf(ui.contrast),
                         onSelect = { index ->
                             ThemePref.setContrast(requireContext(), ContrastLevel.entries[index])

@@ -74,6 +74,16 @@
     <string name="theme_dark">深色</string>
     <string name="setting_contrast">对比度</string>
     <string name="setting_night_mode">明暗模式</string>
+    <!-- 主题枚举文案（枚举常量 → 字符串资源，设计系统库不持有业务文案） -->
+    <string name="theme_brand">品牌</string>
+    <string name="theme_neutral">中性</string>
+    <string name="theme_mono">单色</string>
+    <string name="theme_wallpaper">跟随壁纸</string>
+    <!-- 对比度枚举文案 -->
+    <string name="contrast_reduced">降低</string>
+    <string name="contrast_default">默认</string>
+    <string name="contrast_medium">较高</string>
+    <string name="contrast_high">最高</string>
     <string name="version_line">无障碍管理器 v9.0</string>
 
     <!-- 详情弹卡 -->
@@ -174,7 +184,6 @@
     <string name="empty_search_title">没有匹配「%1$s」的服务</string>
     <string name="empty_search_desc">服务列表里没有名称或包名匹配该关键词的项，可换个词或清空搜索查看全部</string>
     <string name="empty_search_action">清空搜索</string>
-    <string name="list_loading">正在加载服务列表</string>
     <string name="list_error_title">服务列表读取失败</string>
     <string name="list_error_desc">读取无障碍服务信息时出错，可重试；若持续失败请检查是否存在系统限制</string>
     <string name="list_error_action">重试</string>
