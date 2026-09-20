@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import com.accessibilitymanager.BuildConfig
 import com.accessibilitymanager.R
 import com.accessibilitymanager.ThemePref
 import com.accessibilitymanager.core.designsystem.component.M3ListItem
@@ -238,7 +239,7 @@ fun SettingsScreen(
 
         Column(modifier = Modifier.padding(bottom = SpacingTokens.xxl)) {
             Text(
-                text = stringResource(R.string.version_line),
+                text = stringResource(R.string.version_line, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = SpacingTokens.lg),

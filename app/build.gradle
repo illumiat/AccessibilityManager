@@ -32,6 +32,9 @@ android {
         // Compose 为新增：UI 层迁 Compose；业务层已全量 Kotlin 化，
         // 仅 HomeFragment.java 因承载 View 写入路径而保留 Java。
         compose true
+        // 设置页页脚要显示真实版本号：由 BuildConfig.VERSION_NAME 派生，
+        // 而不是硬编码字面量（原先硬编码的 "v9.0" 与包内 versionName 长期不符）。
+        buildConfig true
     }
     lint {
         checkReleaseBuilds false
