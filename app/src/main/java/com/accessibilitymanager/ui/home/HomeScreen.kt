@@ -29,6 +29,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -118,11 +120,14 @@ fun HomeScreen(
         val gridState = rememberLazyGridState()
 
         // 滑动中暂停预加载：滑动状态变化推给调用方（它再转发给 IconCache.setPaused）。
-        LaunchedEffect(gridState, onScrollingChanged) {
-            snapshotFlow { gridState.isScrollInProgress }.collect { scrolling ->
-                onScrollingChanged(scrolling)
-            }
-        }
+        // key 只放 gridState：回调 lambda 入 key 会让 effect 反复取消重启，
+          // 而 snapshotFlow 每次重启都先发一次当前值，把「滑动中暂停预加载」提前解除。
+          val latestOnScrollingChanged by rememberUpdatedState(onScrollingChanged)
+          LaunchedEffect(gridState) {
+              snapshotFlow { gridState.isScrollInProgress }.collect { scrolling ->
+                  latestOnScrollingChanged(scrolling)
+              }
+          }
 
         BoxWithConstraints(modifier = Modifier.weight(1f)) {
             val spacing = SpacingTokens.sm

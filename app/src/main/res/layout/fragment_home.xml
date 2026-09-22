@@ -37,27 +37,6 @@
                 android:textColor="?attr/colorOnSurface" />
 
         </LinearLayout>
-
-        <!-- 右：搜索栏（手机 180dp 起步，平板 sw600dp 限宽 360dp 不无限拉伸） -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/search_layout"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
-            android:layout_width="@dimen/search_box_width"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:hint="@string/search_hint"
-            app:boxBackgroundColor="@android:color/transparent"
-            app:startIconDrawable="@android:drawable/ic_menu_search">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/search_input"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:imeOptions="actionSearch"
-                android:inputType="text"
-                android:maxLines="1"
-                android:textSize="14sp" />
-        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
     <FrameLayout

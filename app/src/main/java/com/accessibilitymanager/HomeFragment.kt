@@ -159,10 +159,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
                 )
             }
         }
-        // 【P3】搜索栏已迁入 Compose（HomeScreen 的 SearchField）：原 EditText 隐藏，
-        // searchQuery 字段保留为唯一数据源，由 Compose 的 onQueryChange 回写。【P6】从布局删除此项。
-        val searchLayout = view.findViewById<View>(R.id.search_layout)
-        if (searchLayout != null) searchLayout.visibility = View.GONE
 
         // 【P3】列表改由 Compose 渲染，以下三段 View 侧机制整段退役：
         //   1) GridLayoutManager 的 span 判定 → Compose 用 BoxWithConstraints 实时算（等价）

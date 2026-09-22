@@ -277,7 +277,7 @@ class RestartPrefs private constructor() {
                     false
                 } else {
                     val mode = ops.checkOpNoThrow(
-                        "android:package_usage_stats",
+                        "android:get_usage_stats",
                         Process.myUid(),
                         c.packageName,
                     )

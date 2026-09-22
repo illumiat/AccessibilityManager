@@ -30,8 +30,13 @@
         </activity>
         <!-- 无外部拉起需求，关闭导出【MAJOR 8】 -->
         <service
-            android:name=".daemonService"
-            android:exported="false" />
+              android:name=".daemonService"
+              android:exported="false"
+              android:foregroundServiceType="specialUse">
+              <property
+                  android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                  android:value="keep_accessibility_services_alive" />
+          </service>
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"

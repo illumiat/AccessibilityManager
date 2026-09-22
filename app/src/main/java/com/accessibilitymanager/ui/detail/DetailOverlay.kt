@@ -22,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -107,11 +110,17 @@ fun DetailOverlay(
     sharedScope: SharedTransitionScope,
     modifier: Modifier = Modifier,
 ) {
-    val serviceId = host.serviceId ?: return
+    // 【A 级修复】**保留最后一次的 id**，让子树在关闭期间仍可组合：
+    // 否则 `host.serviceId ?: return` 会在 close() 的瞬间把整棵子树拆掉，
+    // `visible` 就只能是恒 true 的常量（AnimatedVisibility 永远收不到 false，无过渡、图标瞬移）。
+    var lastServiceId by remember { mutableStateOf<String?>(null) }
+    if (host.serviceId != null) lastServiceId = host.serviceId
+    val serviceId = lastServiceId ?: return
     val callback = host.callback ?: return
+    val visible = host.isOpen
 
     AnimatedVisibility(
-        visible = host.isOpen,
+        visible = visible,
         modifier = modifier.fillMaxSize(),
         // 【动效归属】整卡**不加**淡入淡出 —— 图标要走共享元素的位移，
         // 若容器再叠一层 fade，位移与透明度**同时作用在图标上**，实测表现为抖动。
@@ -167,7 +176,7 @@ fun DetailOverlay(
                         callback = callback,
                         sharedScope = sharedScope,
                         sharedIconKey = serviceId,
-                        sharedIconVisible = host.isOpen,
+                        sharedIconVisible = visible,
                     )
                 }
             }

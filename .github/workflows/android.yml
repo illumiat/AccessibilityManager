@@ -1,5 +1,9 @@
 name: Android CI
 
+# 最小权限：本工作流只构建，不需要写仓库
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ "main" ]

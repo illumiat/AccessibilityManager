@@ -60,13 +60,23 @@ object SettingValueWriter {
      * @return **读回的实际值**（不是想写入的值 —— 系统可能改写）
      * @throws Exception 写入失败；抛出前镜像已回滚，调用方不必再回滚
      */
-    fun commit(c: Context, transform: (String) -> String): String {
+    /**
+     * 提交互斥锁：read → transform → putString → 读回校准 是**一条不可分割的序列**。
+     * 三个写入方分属不同线程（UI / Service 主线程 / Worker 线程），不加锁会后写覆盖前写、
+     * 且 mirror 被交错赋值（B 的写前同步可能被 A 的读回校准覆盖成旧值）→ 观察者误判自写而漏恢复。
+     */
+    private val commitLock = Any()
+
+    fun commit(c: Context, transform: (String) -> String): String = synchronized(commitLock) {
         val cur = read(c)
         val newValue = transform(cur)
         // 【F1/R3】写前同步镜像：让观察者把本次变化识别为「自己写的」
         mirror = newValue
         try {
-            Settings.Secure.putString(c.contentResolver, KEY, newValue)
+            // 【A 级修复】必须接住返回值：无 WRITE_SECURE_SETTINGS 时 putString 可能**不抛异常而静默返回 false**，
+            // 此时读回只是旧值，若当成功返回会让调用方误判、且 mirror 被校准成旧值 → 后续外部变化被误判为自写。
+            val ok = Settings.Secure.putString(c.contentResolver, KEY, newValue)
+            if (!ok) throw IllegalStateException("putString returned false for $KEY")
         } catch (e: Exception) {
             // 镜像回滚为实际值，防镜像失真致观察者对后续外部变化误跳过（与 daemon 侧 R3 同源）
             mirror = try {

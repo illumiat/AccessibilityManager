@@ -4,6 +4,12 @@ app/build/
 .gradle/
 local.properties
 
+# 签名与凭据（防误提交泄漏签名密钥）
+*.keystore
+*.jks
+keystore.properties
+google-services.json
+
 # IDE
 .idea/
 *.iml
