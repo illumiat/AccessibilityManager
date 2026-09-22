@@ -117,6 +117,8 @@ fun ServiceDetailScreen(
     callback: ServiceDetailCallback,
     sharedScope: SharedTransitionScope,
     sharedIconKey: Any,
+    /** 共享元素终点的可见性 —— **必须随开合翻转**，否则无过渡（写死 true 会直接瞬移）。 */
+    sharedIconVisible: Boolean,
     modifier: Modifier = Modifier,
 ) {
     // 周期对话框的可见性归本层自持：它是纯展示态，不涉及写入，
@@ -133,7 +135,7 @@ fun ServiceDetailScreen(
                 bottom = SpacingTokens.xxxl,
             ),
     ) {
-        HeaderRow(header, sharedScope, sharedIconKey)
+        HeaderRow(header, sharedScope, sharedIconKey, sharedIconVisible)
 
         Spacer(Modifier.height(SpacingTokens.xl))
         BasicInfoCard(info)
@@ -192,13 +194,14 @@ fun ServiceDetailScreen(
       header: DetailHeader,
       sharedScope: SharedTransitionScope,
       sharedIconKey: Any,
+      sharedIconVisible: Boolean,
   ) {
       // 共享元素的**终点**：列表缩略图 → 详情头图（规范 §11.3 该共享项第一条）。
       // 起止矩形来自真实布局（SharedTransitionScope extends LookaheadScope），未手写坐标。
       val iconModifier = with(sharedScope) {
           Modifier.sharedElementWithCallerManagedVisibility(
               sharedContentState = rememberSharedContentState(key = sharedIconKey),
-              visible = true,
+              visible = sharedIconVisible,
           )
       }
       Row(verticalAlignment = Alignment.CenterVertically) {

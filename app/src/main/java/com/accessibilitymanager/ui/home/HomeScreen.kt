@@ -88,6 +88,8 @@ private val CardMaxWidth: Dp = 500.dp
 fun HomeScreen(
     models: List<ServiceUiModel>,
     sharedScope: SharedTransitionScope,
+    /** 当前打开详情的服务 id；null = 无卡。用于决定图标共享元素的起点可见性。 */
+    detailServiceId: String?,
     permissionGranted: Boolean,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
@@ -167,6 +169,7 @@ fun HomeScreen(
                               model = model,
                               sharedScope = sharedScope,
                               sharedIconKey = model.serviceId,
+                              iconSharedVisible = model.serviceId != detailServiceId,
                               modifier = Modifier.animateItem(),
                             onToggle = { onToggle(model, it) },
                             onLockClick = { onLockClick(model) },

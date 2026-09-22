@@ -67,6 +67,7 @@ object HomeListBinder {
                           HomeScreen(
                               models = state.models,
                               sharedScope = this@SharedTransitionLayout,
+                              detailServiceId = detailHost.serviceId,
                               permissionGranted = state.permissionGranted,
                               searchQuery = state.query,
                               loading = state.loading,

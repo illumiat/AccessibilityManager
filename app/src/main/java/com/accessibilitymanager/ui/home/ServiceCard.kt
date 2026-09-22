@@ -93,6 +93,8 @@ fun ServiceCard(
     model: ServiceUiModel,
     sharedScope: SharedTransitionScope,
     sharedIconKey: Any,
+    /** 共享元素起点的可见性 —— 卡片打开时**该图标正在飞走**，故应为 false（图标是移动不是复制）。 */
+    iconSharedVisible: Boolean,
     onToggle: (Boolean) -> Unit,
     onLockClick: () -> Unit,
     onClick: () -> Unit,
@@ -143,7 +145,7 @@ fun ServiceCard(
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ServiceIcon(model, sharedScope, sharedIconKey)
+            ServiceIcon(model, sharedScope, sharedIconKey, iconSharedVisible)
 
             Column(
                 modifier = Modifier
@@ -223,13 +225,15 @@ private fun ServiceIcon(
     model: ServiceUiModel,
     sharedScope: SharedTransitionScope,
     sharedIconKey: Any,
+    /** 共享元素起点的可见性 —— 卡片打开时**该图标正在飞走**，故应为 false（图标是移动不是复制）。 */
+    iconSharedVisible: Boolean,
 ) {
     // 共享元素的**起点**：列表缩略图 → 详情头图（规范 §11.3「该共享」第一条，圆形头像 → 详情头像）。
     // 起止矩形来自真实布局（SharedTransitionScope extends LookaheadScope），未手写坐标。
     val iconModifier = with(sharedScope) {
         Modifier.sharedElementWithCallerManagedVisibility(
             sharedContentState = rememberSharedContentState(key = sharedIconKey),
-            visible = true,
+            visible = iconSharedVisible,
         )
     }
     M3AppIcon(

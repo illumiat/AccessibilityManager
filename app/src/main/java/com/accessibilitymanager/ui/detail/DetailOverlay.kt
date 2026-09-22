@@ -167,6 +167,7 @@ fun DetailOverlay(
                         callback = callback,
                         sharedScope = sharedScope,
                         sharedIconKey = serviceId,
+                        sharedIconVisible = host.isOpen,
                     )
                 }
             }
