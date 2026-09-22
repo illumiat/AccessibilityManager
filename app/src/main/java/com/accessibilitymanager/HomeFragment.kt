@@ -4,7 +4,6 @@ import android.Manifest
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.annotation.SuppressLint
 import android.app.ActivityManager
-import android.app.Dialog
 import android.app.NotificationManager
 import android.app.Service
 import android.content.ComponentName
@@ -12,7 +11,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Build
@@ -24,29 +22,21 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowMetrics
 import android.view.accessibility.AccessibilityManager
-import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.Insets
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
+import com.accessibilitymanager.ui.detail.DetailHost
 import com.accessibilitymanager.ui.detail.DetailInfo
 import com.accessibilitymanager.ui.detail.DetailRestart
-import com.accessibilitymanager.ui.detail.ServiceDetailBinder
 import com.accessibilitymanager.ui.detail.ServiceDetailCallback
-import com.accessibilitymanager.ui.detail.ServiceDetailState
 import com.accessibilitymanager.ui.home.HomeListBinder
 import com.accessibilitymanager.ui.home.HomeListState
 import com.accessibilitymanager.ui.home.HomeServiceCallback
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.sidesheet.SideSheetDialog
 import rikka.shizuku.Shizuku
 import java.util.ArrayList
 import java.util.Collections
@@ -84,21 +74,22 @@ class HomeFragment : Fragment(), HomeServiceCallback {
     private val topSet: MutableSet<String> = HashSet()
     private val daemonSet: MutableSet<String> = HashSet()
 
-    private var detailDialog: Dialog? = null
-    /** 当前弹出详情的服务（尺寸变化时以新形态重开）【MISSING 12】 */
+    /** 当前弹出详情的服务（`onSaveInstanceState` 持久化、重建后回填 —— 旋转保留卡片状态）【MISSING 12】 */
     private var detailServiceId: String? = null
     private var detailInfo: AccessibilityServiceInfo? = null
-    /** 详情 Sheet 打开期间可重入的定期重启区域刷新逻辑（bindDetail 注册 / dismiss 清理）【P3】 */
+    /** 详情卡打开期间可重入的定期重启区域刷新逻辑（openDetail 注册 / dismiss 清理）【P3】 */
     private var detailRestartRefresher: Runnable? = null
     /**
-     * 【P4】详情内容的 **Kotlin 不可变模型层**状态持有者。
+     * 【P4】详情卡片的**宿主状态**：打开哪个服务、不可变模型、意图回调。
      *
      * 与 [listState] 同一条约束：**Java 类型绝不能进入组合树**（Java POJO 无可变/相等语义
      * → Compose 判定 unstable → 跳过重组失效）。宿主只往里提交已定稿的模型。
+     *
+     * ⚠️ 承载方式已由 MDC 的 `BottomSheetDialog` / `SideSheetDialog` 改为**同组合内 overlay**
+     * （见 `ui/detail/DetailOverlay.kt`）：**共享元素跨不过 window**，
+     * 而规范 §11.3 要求页面转场用共享元素，故弹卡必须与列表同处一个 `SharedTransitionLayout`。
      */
-    private var detailState: ServiceDetailState? = null
-    /** 上次已知宽度是否 ≥600dp（Sheet 形态阈值态）；null = 尚未测量【SP1】 */
-    private var lastWide: Boolean? = null
+    private val detailHost = DetailHost()
 
     private lateinit var contentObserver: SettingsValueChangeContentObserver
     private var shizukuListener: Shizuku.OnRequestPermissionResultListener? = null
@@ -123,6 +114,8 @@ class HomeFragment : Fragment(), HomeServiceCallback {
 
     override fun onCreate(@Nullable savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // 【MISSING 12】旋转后回填「当前打开的服务 id」（存取见 onSaveInstanceState）
+        detailServiceId = savedInstanceState?.getString(KEY_DETAIL_SERVICE_ID)
         appContext = requireContext().getApplicationContext() // 【R4】提前捕获，onDestroy 注销用
         sp = requireContext().getSharedPreferences("data", 0)
         daemon = sp.getString("daemon", "") ?: ""
@@ -192,9 +185,12 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         listView = view.findViewById(R.id.compose_list)
         bindComposeList()
 
-        bindDetailFormFactorWatcher(view)
-
         loadInstalled()
+
+        // 【MISSING 12】旋转后按回填的 id 重开详情卡（图标/数据重新取，不阻塞首屏）
+        detailServiceId?.let { id ->
+            installed.firstOrNull { it.getId() == id }?.let { openDetail(it) }
+        }
 
         // 隐藏后台：随设置页开关即时生效，这里应用当前偏好
         applyHideFromRecents()
@@ -251,6 +247,13 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         if (::listState.isInitialized) listState.setPermission(granted)
         refreshStates()
         updateBanners(granted)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // 【MISSING 12】旋转保留卡片状态：Activity 重建（Manifest 未声明 `orientation`）会丢 Compose 状态，
+        // 故把「当前打开的服务 id」写进 savedInstanceState，重建后回填并重开（模型随之重提交）。
+        detailServiceId?.let { outState.putString(KEY_DETAIL_SERVICE_ID, it) }
     }
 
     override fun onDestroy() {
@@ -389,6 +392,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         HomeListBinder.bind(
             lv,
             listState,
+            detailHost,
             this,
             { q ->
                 searchQuery = q
@@ -427,8 +431,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
 
     /** 【P3】详情 Sheet 打开中时刷新定期重启卡区域（周期行/重启中态/上次执行时间） */
     private fun refreshDetailRestartArea() {
-        val d = detailDialog
-        if (d != null && d.isShowing && detailServiceId != null && detailRestartRefresher != null) {
+        if (detailHost.isOpen && detailServiceId != null && detailRestartRefresher != null) {
             detailRestartRefresher!!.run()
         }
     }
@@ -599,85 +602,11 @@ class HomeFragment : Fragment(), HomeServiceCallback {
     // ---------- 批 2：详情弹卡 ----------
 
     fun dismissDetailSheet() {
-        val d = detailDialog
-        if (d != null && d.isShowing) {
-            d.dismiss()
-        }
-        detailDialog = null
-    }
-
-    private fun contentWidthDp(): Int {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val metrics: WindowMetrics = requireActivity().getWindowManager().getCurrentWindowMetrics()
-            return Math.round(metrics.bounds.width() / getResources().displayMetrics.density)
-        }
-        return Math.round(getResources().displayMetrics.widthPixels / getResources().displayMetrics.density)
-    }
-
-    /**
-     * 【MISSING 12 / SP1】600dp 形态阈值跟随：宽度跨越 600dp 时详情卡先 dismiss 再以新形态重开。
-     *
-     * ## 为什么必须单独跟踪（不能靠 openDetail 时的判断）
-     *
-     * `openDetail` 只在**开卡那一刻**用 [contentWidthDp] 判断一次形态。旋转、折叠屏展开/合拢、
-     * 分屏拖动都会在**卡片已显示期间**改变宽度，此时若形态不跟随，就会出现
-     * 「本该是侧边栏的位置却还挂着底部抽屉」的错配。
-     *
-     * ## 为什么监听挂在内容根视图而不是某个列表控件
-     *
-     * 迁移前这段逻辑挂在 `RecyclerView` 上，因为它同时承担「重算 span」与「跟随 600dp 形态」两件事。
-     * 现在 **span 由 Compose 的 `BoxWithConstraints` 实时算**（列表契约已移交 Compose），
-     * 只余形态跟随这一半职责 —— 故改挂在内容根视图上（宽度即内容区宽度，与旧实现同源）。
-     *
-     * ## 与旧实现逐条一致的两点
-     *
-     * - **首次布局不触发**：`lastWide` 为 null 时 `wideChanged` 必为 false，只建立基准（防开屏误重开）；
-     * - **宽度未变即返回**：`width == oldWidth` 时直接 return。
-     *
-     * 注意此处只比较**阈值态翻转**，不比较具体宽度：590→620dp 时 span 恒为 2 不变，
-     * 但形态已跨过 Bottom/Side 界限，故不能用 span 变化代替该判断（旧实现注释同此意）。
-     *
-     * ## ⚠️ 真机实测补充（2026-09-19）：本逻辑的真实生效场景比想象窄
-     *
-     * 用 `wm size` 与 `settings put system user_rotation` 制造宽度变化时，**本段代码观察到的
-     * `detailDialog` 恒为 null** —— 加日志实测：
-     *
-     * ```
-     * w=1440 oldW=0 newWide=false wideChanged=false dialogNull=true
-     * w=2600 oldW=0 newWide=true  wideChanged=false dialogNull=true
-     * ```
-     *
-     * 即**宿主 window 尺寸剧变时，系统会先 dismiss 掉 Dialog**（对话框是独立 window），
-     * 于是 `reopen` 永远为 null。另外旋转会因 Manifest 未声明 `orientation` 而重建 Activity
-     * （实测 task id 从 t6822 → t6824），Dialog 同样消失。
-     *
-     * **结论**：这段逻辑对「旋转」与「`wm size` 剧变」实际不起作用（两者都表现为卡片关闭后
-     * 用户重开，与迁移前一致）。它真正的生效场景是 Manifest 已声明 `screenSize` 所覆盖的
-     * **窗口 bounds 渐变**：分屏拖动、折叠屏展开/合拢 —— 那时 window 不重建、Dialog 也不被
-     * 系统立即销毁。**该场景尚未在真机上验证**（需要折叠屏或分屏环境）。
-     *
-     * 保留本逻辑的理由：它与迁移前行为一致、无副作用、且在上述渐变场景是必要的。
-     * 若将来确认那些场景也不触发，应连同 `lastWide` 一起删除（避免留下看似有用实则空转的代码）。
-     */
-    private fun bindDetailFormFactorWatcher(root: View) {
-        val density = getResources().displayMetrics.density
-        root.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
-            val width = right - left
-            val oldWidth = oldRight - oldLeft
-            if (width != oldWidth) {
-                val newWide = width >= 600 * density
-                val wideChanged = lastWide != null && lastWide != newWide
-                lastWide = newWide
-                if (wideChanged) {
-                    // 取"待重开"的服务：仅当弹卡确实显示中才重开（用户可能已手动关闭）
-                    val d = detailDialog
-                    val reopen: AccessibilityServiceInfo? =
-                        if (d != null && d.isShowing && detailServiceId != null) detailInfo else null
-                    dismissDetailSheet()
-                    if (reopen != null) openDetail(reopen)
-                }
-            }
-        }
+        // 与旧实现一致：关闭即清记录（用户点遮罩/下滑关闭同样生效），防残留触发误重开【MISSING 12】
+        detailHost.close()
+        detailServiceId = null
+        detailInfo = null
+        detailRestartRefresher = null // 【P3】防引用已失效的刷新闭包
     }
 
     /** 点击卡片弹出详情：<600dp Bottom Sheet / ≥600dp Side Sheet（WindowMetrics 实时判断，Q2） */
@@ -706,143 +635,31 @@ class HomeFragment : Fragment(), HomeServiceCallback {
             }
         }
 
-        val dialog: Dialog
-        val content: View
-        if (contentWidthDp() < 600) {
-            val sheet = BottomSheetDialog(requireContext())
-            content = buildDetailContent(info, callback)
-            applySheetInsets(content) // 【MISSING 13】
-            sheet.setContentView(content)
-            dialog = sheet
-        } else {
-            val side = SideSheetDialog(requireContext())
-            content = buildDetailContent(info, callback)
-            applySheetInsets(content) // 【MISSING 13】
-            side.setContentView(content)
-            // 平板加宽：默认 sheet 偏窄，改为 500dp（不超过屏宽 60%）
-            side.setOnShowListener {
-                val sheet = side.findViewById<View>(com.google.android.material.R.id.m3_side_sheet)
-                if (sheet != null) {
-                    val density = getResources().displayMetrics.density
-                    val want = Math.round(500 * density)
-                    val max = Math.round(getResources().displayMetrics.widthPixels * 0.6f)
-                    val lp = sheet.layoutParams
-                    if (lp != null) {
-                        lp.width = Math.min(want, max)
-                        sheet.layoutParams = lp
-                    }
-                }
-            }
-            dialog = side
-        }
-        detailDialog = dialog
-        // 关闭时清理记录（用户手动下滑关闭同样生效），防止残留触发误重开【MISSING 12】
-        dialog.setOnDismissListener { d ->
-            if (detailDialog == d) {
-                detailDialog = null
-                detailServiceId = null
-                detailInfo = null
-                detailRestartRefresher = null // 【P3】防引用已销毁视图的刷新闭包
-                detailState = null            // 【P4】内容状态随之脱钩（Compose 侧持有自身引用，不受影响）
-            }
-        }
-
-        dialog.show()
-    }
-
-    /**
-     * 【MISSING 13】Sheet 内容根布局挂 OnApplyWindowInsetsListener：
-     * 手势导航 navigationBar insets 动态叠加 padding（保留布局原 padding 基线）
-     */
-    private fun applySheetInsets(content: View) {
-        val baseLeft = content.paddingLeft
-        val baseTop = content.paddingTop
-        val baseRight = content.paddingRight
-        val baseBottom = content.paddingBottom
-        content.setOnApplyWindowInsetsListener { v, insets ->
-            val bars: Insets = WindowInsetsCompat.toWindowInsetsCompat(insets)
-                .getInsets(WindowInsetsCompat.Type.navigationBars())
-            v.setPadding(
-                baseLeft + bars.left, baseTop + bars.top,
-                baseRight + bars.right, baseBottom + bars.bottom,
-            )
-            insets
-        }
-    }
-
-    /**
-     * 构造详情内容视图：`NestedScrollView`（承载滚动）包 `ComposeView`（承载界面）。
-     *
-     * ## ⚠️ 为什么必须留一层 NestedScrollView —— 一手核实的结论，勿删
-     *
-     * MDC 的 `BottomSheetBehavior.findScrollingChild()` 判定"滚动子视图"的依据是
-     * **`view.isNestedScrollingEnabled()`**（不是 `instanceof NestedScrollingChild`），
-     * 并据此协调「内容滚动 vs 拖动关闭」：
-     *
-     * - `hasScrollingChild()` 决定 `onInterceptTouchEvent` 是否为了拖动而拦截 MOVE；
-     * - `tryCaptureView` 在滚动子视图还能向上滚（`canScrollVertically(-1)`）时
-     *   **放弃**捕获，把滚动让给内容。
-     *
-     * 而 `ComposeView`（→ `AbstractComposeView` → `ViewGroup`）与 `AndroidComposeView`
-     * **都没有调用 `setNestedScrollingEnabled(true)`**（javap 核实），裸挂上去该判定为空，
-     * 上述两条协调全部失效。
-     *
-     * `NestedScrollView` 实现 `NestedScrollingChild3` 且默认启用嵌套滚动（javap 核实），
-     * 与迁移前「内容根是 ScrollView」的结构同构。`ScrollView` 系对子视图按
-     * **UNSPECIFIED 高度**测量，故 Compose 的列可自由展开到真实内容高度 ——
-     * **因此 Compose 侧不得再挂 `verticalScroll`，否则双重滚动。**
-     *
-     * @param info 该弹卡对应的服务（用于图标异步补刷）
-     * @param callback 按弹卡实例构造的意图回调
-     */
-    private fun buildDetailContent(info: AccessibilityServiceInfo, callback: ServiceDetailCallback): View {
-        val state = ServiceDetailState()
-        detailState = state
-
-        // ComposeView 取 **Activity** 上下文：AppTheme 经主题属性解析配色，而弹窗会把 Context
-        // 包一层 dialog 主题 overlay，可能让 ?attr/colorSurface* 解析到 overlay 的值。
-        // 迁移前的内容视图是 getLayoutInflater().inflate(...) 得来的，其上下文同样是 Activity。
-        val composeView = ComposeView(requireActivity())
-        composeView.layoutParams = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-        )
-        ServiceDetailBinder.bind(composeView, state, callback)
-
-        val scroller = NestedScrollView(requireActivity())
-        scroller.layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-        )
-        scroller.addView(composeView)
+        // 【承载方式变更】不再建 Dialog —— 详情卡由同组合内的 DetailOverlay 渲染。
+        // 共享元素跨不过 window，弹卡必须与列表同处一个 SharedTransitionLayout（规范 §11.3）。
+        // 形态（<600dp 底部抽屉 / ≥600dp 居中悬浮）由 overlay 按 BoxWithConstraints 实时判定。
+        detailHost.callback = callback
+        detailHost.serviceId = serviceId
 
         // 首刷：头部 / 信息块 / 定期重启区
-        val serviceId = info.getId()
         val e = iconCache.peek(serviceId)
-        state.submitHeaderFromCache(serviceId, e)
+        detailHost.state.submitHeaderFromCache(serviceId, e)
         if (e == null || e.icon == null) {
-            // 【M-c】缓存未命中时传回调：弹卡仍在显示且仍是同一服务 → 补刷图标与标题，
+            // 【M-c】缓存未命中时传回调：卡片仍打开且仍是同一服务 → 补刷图标与标题，
             // 防加载完成后停留占位图。守卫与迁移前逐条一致。
             iconCache.load(info, IconCache.LoadCallback { reloadDetailHeader(info, serviceId) })
         }
         submitDetailInfo(info)
         detailRestartRefresher = Runnable { submitDetailRestart() } // 【P3】注册供 onChange/refreshStates 重入
         submitDetailRestart()
-        return scroller
     }
 
     /** 详情头部异步补刷（图标/标签就绪后重提交）。 */
     private fun reloadDetailHeader(info: AccessibilityServiceInfo, serviceId: String) {
-        val d = detailDialog
-        if (d == null || !d.isShowing ||
-            detailServiceId == null || serviceId != detailServiceId
-        ) {
+        if (!detailHost.isOpen || detailServiceId == null || serviceId != detailServiceId) {
             return
         }
-        val st = detailState
-        if (st != null) {
-            st.submitHeaderFromCache(serviceId, iconCache.peek(serviceId))
-        }
+        detailHost.state.submitHeaderFromCache(serviceId, iconCache.peek(serviceId))
     }
 
     /**
@@ -852,8 +669,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
      * （展示层再拼一遍就是「同功能双实现」）。
      */
     private fun submitDetailInfo(info: AccessibilityServiceInfo) {
-        val st = detailState
-        if (st == null) return
+        val st = detailHost.state
         val serviceId = info.getId()
         // 【P6】收口 RestartPrefs.isEnabledIn（原经 ServiceAdapter.isEnabledIn 中转，后者随 Adapter 删除）
         val enabled = RestartPrefs.isEnabledIn(settingValue, serviceId)
@@ -885,9 +701,9 @@ class HomeFragment : Fragment(), HomeServiceCallback {
      * 那条纪律不是被绕过，而是**在结构上不存在了**。
      */
     private fun submitDetailRestart() {
-        val st = detailState
+        val st = detailHost.state
         val serviceId = detailServiceId
-        if (st == null || serviceId == null) return
+        if (serviceId == null) return
         val cur = RestartPrefs.get(requireContext(), serviceId)
         val pending = RestartPrefs.getPendingEnables(requireContext()).containsKey(serviceId)
         val failed = RestartPrefs.getFailed(requireContext()).contains(serviceId)
@@ -1090,6 +906,9 @@ class HomeFragment : Fragment(), HomeServiceCallback {
 
     companion object {
         private const val REQUEST_POST_NOTIFICATIONS = 1
+
+        /** 详情卡在 savedInstanceState 里的键（旋转保留卡片状态）【MISSING 12】 */
+        private const val KEY_DETAIL_SERVICE_ID = "detail_service_id"
 
         /** ":" 连接的 id 串 → 精确 id 集合【MAJOR 3】 */
         private fun fillIds(colonJoined: String, out: MutableSet<String>) {

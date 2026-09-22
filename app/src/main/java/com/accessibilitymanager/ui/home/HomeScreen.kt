@@ -27,6 +27,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
@@ -86,6 +87,7 @@ private val CardMaxWidth: Dp = 500.dp
 @Composable
 fun HomeScreen(
     models: List<ServiceUiModel>,
+    sharedScope: SharedTransitionScope,
     permissionGranted: Boolean,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
@@ -161,9 +163,11 @@ fun HomeScreen(
                         items = models,
                         key = { it.serviceId },
                     ) { model ->
-                        ServiceCard(
-                            model = model,
-                            modifier = Modifier.animateItem(),
+                          ServiceCard(
+                              model = model,
+                              sharedScope = sharedScope,
+                              sharedIconKey = model.serviceId,
+                              modifier = Modifier.animateItem(),
                             onToggle = { onToggle(model, it) },
                             onLockClick = { onLockClick(model) },
                             onClick = { onOpen(model) },

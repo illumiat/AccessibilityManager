@@ -21,6 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -89,6 +91,8 @@ import com.accessibilitymanager.ui.model.WarningKind
 @Composable
 fun ServiceCard(
     model: ServiceUiModel,
+    sharedScope: SharedTransitionScope,
+    sharedIconKey: Any,
     onToggle: (Boolean) -> Unit,
     onLockClick: () -> Unit,
     onClick: () -> Unit,
@@ -139,7 +143,7 @@ fun ServiceCard(
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ServiceIcon(model)
+            ServiceIcon(model, sharedScope, sharedIconKey)
 
             Column(
                 modifier = Modifier
@@ -214,12 +218,26 @@ fun ServiceCard(
  * **本槽不再承载任何角标**：置顶标签在**尾部状态区**（见 [PinnedLabel]）。
  */
 @Composable
-private fun ServiceIcon(model: ServiceUiModel) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+private fun ServiceIcon(
+    model: ServiceUiModel,
+    sharedScope: SharedTransitionScope,
+    sharedIconKey: Any,
+) {
+    // 共享元素的**起点**：列表缩略图 → 详情头图（规范 §11.3「该共享」第一条，圆形头像 → 详情头像）。
+    // 起止矩形来自真实布局（SharedTransitionScope extends LookaheadScope），未手写坐标。
+    val iconModifier = with(sharedScope) {
+        Modifier.sharedElementWithCallerManagedVisibility(
+            sharedContentState = rememberSharedContentState(key = sharedIconKey),
+            visible = true,
+        )
+    }
     M3AppIcon(
         icon = model.icon,
         initial = model.iconInitial,
         contentDescription = stringResource(R.string.service_icon_desc),
         size = SizeTokens.IconContainerSize,
+        modifier = iconModifier,
     )
 }
 

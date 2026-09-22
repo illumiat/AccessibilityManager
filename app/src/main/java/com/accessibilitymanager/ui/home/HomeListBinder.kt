@@ -1,7 +1,14 @@
 package com.accessibilitymanager.ui.home
 
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import com.accessibilitymanager.core.designsystem.theme.AppTheme
+import com.accessibilitymanager.ui.detail.DetailHost
+import com.accessibilitymanager.ui.detail.DetailOverlay
 import java.util.function.Consumer
 
 /**
@@ -38,50 +45,63 @@ object HomeListBinder {
      * @param onOpenSystemSettings 空态主动作"去系统设置开启无障碍服务"
      * @param onRetry 错误态"重试"
      */
-    @JvmStatic
-    @Suppress("LongParameterList")
-    fun bind(
-        view: ComposeView,
-        state: HomeListState,
-        callback: HomeServiceCallback,
-        onQueryChange: Consumer<String>,
-        onAuthorize: Runnable,
-        onOpenSystemSettings: Runnable,
-        onRetry: Runnable,
-    ) {
+      @JvmStatic
+      @Suppress("LongParameterList")
+      @OptIn(ExperimentalSharedTransitionApi::class)
+      fun bind(
+          view: ComposeView,
+          state: HomeListState,
+          detailHost: DetailHost,
+          callback: HomeServiceCallback,
+          onQueryChange: Consumer<String>,
+          onAuthorize: Runnable,
+          onOpenSystemSettings: Runnable,
+          onRetry: Runnable,
+      ) {
         // ⚠️ 本方法**只调一次**。授权态/搜索词/加载/错误都从 state 读取（Compose 状态），
         // 若改为入参快照，宿主每次变化都要重调 setContent —— 那会重置列表滚动位置。
-        view.setContent {
-            AppTheme {
-                HomeScreen(
-                    models = state.models,
-                    permissionGranted = state.permissionGranted,
-                    searchQuery = state.query,
-                    loading = state.loading,
-                    error = state.error,
-                    onScrollingChanged = state::onScrollingChanged,
-                    onSearchChange = { q ->
-                        state.query = q // 驱动输入框回显
-                        onQueryChange.accept(q) // 宿主据此重算列表
-                    },
-                    onAuthorize = { onAuthorize.run() },
-                    onOpenSystemSettings = { onOpenSystemSettings.run() },
-                    onRetry = { onRetry.run() },
-                    onToggle = { model, checked ->
-                        state.infoFor(model.serviceId)?.let { callback.onToggle(it, checked) }
-                    },
-                    onLockClick = { model ->
-                        state.infoFor(model.serviceId)?.let { callback.onLockClick(it) }
-                    },
-                    onOpen = { model ->
-                        state.infoFor(model.serviceId)?.let { callback.onItemClick(it) }
-                    },
-                    // 长按置顶：功能必须有可发现的替代入口（判据 L4）
-                    onLongPress = { model ->
-                        state.infoFor(model.serviceId)?.let { callback.onItemLongClick(it) }
-                    },
-                )
-            }
-        }
+          view.setContent {
+              AppTheme {
+                  SharedTransitionLayout {
+                      Box(Modifier.fillMaxSize()) {
+                          HomeScreen(
+                              models = state.models,
+                              sharedScope = this@SharedTransitionLayout,
+                              permissionGranted = state.permissionGranted,
+                              searchQuery = state.query,
+                              loading = state.loading,
+                              error = state.error,
+                              onScrollingChanged = state::onScrollingChanged,
+                              onSearchChange = { q ->
+                                  state.query = q // 驱动输入框回显
+                                  onQueryChange.accept(q) // 宿主据此重算列表
+                              },
+                              onAuthorize = { onAuthorize.run() },
+                              onOpenSystemSettings = { onOpenSystemSettings.run() },
+                              onRetry = { onRetry.run() },
+                              onToggle = { model, checked ->
+                                  state.infoFor(model.serviceId)?.let { callback.onToggle(it, checked) }
+                              },
+                              onLockClick = { model ->
+                                  state.infoFor(model.serviceId)?.let { callback.onLockClick(it) }
+                              },
+                              onOpen = { model ->
+                                  state.infoFor(model.serviceId)?.let { callback.onItemClick(it) }
+                              },
+                              // 长按置顶：功能必须有可发现的替代入口（判据 L4）
+                              onLongPress = { model ->
+                                  state.infoFor(model.serviceId)?.let { callback.onItemLongClick(it) }
+                              },
+                          )
+                          // 详情卡片：与列表同处一个 SharedTransitionLayout，故图标可做共享元素。
+                          // 承载方式是**同组合内 overlay**，不是 Dialog —— 共享元素跨不过 window。
+                          DetailOverlay(
+                              host = detailHost,
+                              sharedScope = this@SharedTransitionLayout,
+                          )
+                      }
+                  }
+              }
+          }
     }
 }

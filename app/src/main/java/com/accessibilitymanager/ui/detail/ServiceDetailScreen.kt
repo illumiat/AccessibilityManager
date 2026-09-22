@@ -1,5 +1,7 @@
 package com.accessibilitymanager.ui.detail
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -113,6 +115,8 @@ fun ServiceDetailScreen(
     info: DetailInfo,
     restart: DetailRestart,
     callback: ServiceDetailCallback,
+    sharedScope: SharedTransitionScope,
+    sharedIconKey: Any,
     modifier: Modifier = Modifier,
 ) {
     // 周期对话框的可见性归本层自持：它是纯展示态，不涉及写入，
@@ -129,7 +133,7 @@ fun ServiceDetailScreen(
                 bottom = SpacingTokens.xxxl,
             ),
     ) {
-        HeaderRow(header)
+        HeaderRow(header, sharedScope, sharedIconKey)
 
         Spacer(Modifier.height(SpacingTokens.xl))
         BasicInfoCard(info)
@@ -181,16 +185,30 @@ fun ServiceDetailScreen(
     }
 }
 
-/** 头部：图标 + 应用名（主角）+ 包名/类名。 */
-@Composable
-private fun HeaderRow(header: DetailHeader) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        M3AppIcon(
-            icon = header.icon,
-            initial = header.iconInitial,
-            contentDescription = stringResource(R.string.service_icon_desc),
-            size = SizeTokens.HeroIconSize,
-        )
+  /** 头部：图标 + 应用名（主角）+ 包名/类名。 */
+  @OptIn(ExperimentalSharedTransitionApi::class)
+  @Composable
+  private fun HeaderRow(
+      header: DetailHeader,
+      sharedScope: SharedTransitionScope,
+      sharedIconKey: Any,
+  ) {
+      // 共享元素的**终点**：列表缩略图 → 详情头图（规范 §11.3 该共享项第一条）。
+      // 起止矩形来自真实布局（SharedTransitionScope extends LookaheadScope），未手写坐标。
+      val iconModifier = with(sharedScope) {
+          Modifier.sharedElementWithCallerManagedVisibility(
+              sharedContentState = rememberSharedContentState(key = sharedIconKey),
+              visible = true,
+          )
+      }
+      Row(verticalAlignment = Alignment.CenterVertically) {
+          M3AppIcon(
+              icon = header.icon,
+              initial = header.iconInitial,
+              contentDescription = stringResource(R.string.service_icon_desc),
+              size = SizeTokens.HeroIconSize,
+              modifier = iconModifier,
+          )
         Column(
             modifier = Modifier
                 .weight(1f)
