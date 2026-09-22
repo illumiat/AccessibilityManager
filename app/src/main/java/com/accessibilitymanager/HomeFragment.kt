@@ -44,7 +44,7 @@ import java.util.Comparator
 import java.util.HashSet
 
 /**
- * 主页（方案 §二）：服务网格 + 开关写 Settings.Secure（tmpSettingValue 防循环）+
+ * 主页（方案 §二）：服务网格 + 开关写 Settings.Secure（SettingValueWriter.mirror 防循环）+
  * ContentObserver 局部刷新 + 置顶精确移动 + 授权检查与激活对话框 + StartForeGroundDaemon +
  * 空态/未授权态/onResume 重查列表 + 详情弹卡（<600dp Bottom Sheet / ≥600dp Side Sheet）
  * + per-服务定期重启配置入口。
@@ -64,7 +64,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
     private var searchQuery = ""
 
     private var settingValue = ""
-    private var tmpSettingValue = ""
     private var daemon = ""
     private var top = ""
     /** top/daemon 串按 ":" 精确切分的 id 集合，防互为前缀的服务 id 子串误判【MAJOR 3】 */
@@ -101,10 +100,10 @@ class HomeFragment : Fragment(), HomeServiceCallback {
             var s = Settings.Secure.getString(cr, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
             if (s == null) s = ""
             settingValue = s
-            // 【P4】s==tmpSettingValue（本 APP 自己写，或外部把设置串改回"上次写入值"）不再静默
+            // 【P4】s==SettingValueWriter.mirror（本 APP 自己写，或外部把设置串改回"上次写入值"）不再静默
             // return：先做只读 UI 刷新再收尾，自检基准随外部变化校准，不再滞留旧态至 onResume。
             // 刷新仅读设置值刷新可见行开关态与详情卡（refreshStates/updateRestartViews 均不写
-            // Settings.Secure，也不触碰 tmpSettingValue 写方镜像）→ 无写路径、无回环
+            // Settings.Secure，也不触碰 SettingValueWriter.mirror 写方镜像）→ 无写路径、无回环
             postStatesRefresh()
         }
     }
@@ -271,8 +270,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         sortDisplay()
         // 【P3】原 `applyFilter()`（→ adapter.setItems）此处省略：末尾 refreshStates() 已用**新的**
         // settingValue 做一次 refreshList()，先跑一次会拿旧 settingValue 造成一帧开关态错位。
-        settingValue = readSettingValue()
-        tmpSettingValue = settingValue
+        settingValue = SettingValueWriter.read(requireContext())
         // 【P6】原 updateEmptyState() 已删：空态由 Compose 自然渲染，不再需要 View 侧开关。
         refreshStates()
     }
@@ -402,14 +400,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         }
     }
 
-    private fun readSettingValue(): String {
-        val s = Settings.Secure.getString(
-            requireContext().contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-        )
-        return s ?: ""
-    }
-
     private fun startDaemonIfNeeded() {
         if (PermissionHelper.hasWritePermission(requireContext())) {
             for (info in installed) {
@@ -475,26 +465,16 @@ class HomeFragment : Fragment(), HomeServiceCallback {
             return
         }
         val serviceName = info.getId()
-        val s = readSettingValue()
-        // 【MAJOR 10】开关串的**单服务前置 / 移除**统一走 RestartPrefs 单一实现
-        // （daemonService 与 RestartWorker 的单服务前置已同口径，防双实现分叉）。
-        // ⚠️ 边界：daemonService.doDaemon 里「批量前置多个待补服务」是另一种形态，
-        // 仍在 daemonService 内拼串 —— 本次只收口单服务口径，批量形态待收（勿以为已全收）。
-        tmpSettingValue = if (checked) {
-            RestartPrefs.prependService(s, serviceName)
-        } else {
-            RestartPrefs.removeService(s, serviceName)
-        }
+        // 【MAJOR 10】开关串的**单服务前置 / 移除**统一走 RestartPrefs 单一实现（防双实现分叉）。
+        // 【写入协议】镜像同步 / 写 / 读回校准 / 异常回滚 收口 SettingValueWriter.commit（唯一实现）。
         try {
-            Settings.Secure.putString(
-                requireContext().contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-                tmpSettingValue,
-            )
+            SettingValueWriter.commit(requireContext()) {
+                if (checked) RestartPrefs.prependService(it, serviceName)
+                else RestartPrefs.removeService(it, serviceName)
+            }
         } catch (e: Exception) {
-            // 【P6-a】catch 由 SecurityException 扩为 Exception（与 daemon 侧口径统一）：任何写失败
-            // 均回滚镜像为读取到的实际旧值并提示刷新，防 tmpSettingValue 失真（依赖自愈存在窗口期）
-            tmpSettingValue = s
+            // 【P6-a】catch 保持 Exception（与 daemon 侧口径统一）：失败 UX 在此，
+            // 镜像已在 commit 内回滚为读回实际值（依赖自愈存在窗口期）
             Toast.makeText(requireContext(), R.string.toast_write_failed, Toast.LENGTH_SHORT).show()
             refreshStates()
         }

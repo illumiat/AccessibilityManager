@@ -33,13 +33,13 @@ import java.util.Locale
  *
  * ## 转换说明（行为不变，三点必须守住）
  *
- * 1. [tmpSettingValue] 必须是 **Java 静态字段**：用 `@JvmField @Volatile`（而非 `@JvmStatic`）。
+ * 1. [SettingValueWriter.mirror] 必须是 **Java 静态字段**：用 `@JvmField @Volatile`（而非 `@JvmStatic`）。
  *    `@JvmStatic` 只生成静态 **getter/setter**，不是字段 —— 原 Java 是 `public static volatile String`，
  *    字段语义一旦变成访问器就不再等价。
  * 2. [SettingsValueChangeContentObserver] 在 Java 中是**非静态内部类**（隐式持有外部服务引用，
  *    因此能直接调用 `getContentResolver()` / [doDaemon]）；Kotlin 必须写 `inner class`，
  *    写成嵌套类会编译失败（拿不到外部成员）。
- * 3. [tmpSettingValue] 的全部写入点（doDaemon 写前、写失败回滚、写后读回校准、tryEnable 写前/读回/异常回滚、
+ * 3. [SettingValueWriter.mirror] 的全部写入点（doDaemon 写前、写失败回滚、写后读回校准、tryEnable 写前/读回/异常回滚、
  *    compensatePendingEnables 收尾同步）**一处都不能少** —— 这是 ContentObserver 自触发防循环的唯一依据。
  */
 class daemonService : Service() {
@@ -63,7 +63,7 @@ class daemonService : Service() {
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
             )
             if (set == null) set = ""
-            if (tmpSettingValue == set) return
+            if (SettingValueWriter.mirror == set) return
             doDaemon(set)
         }
     }
@@ -81,7 +81,7 @@ class daemonService : Service() {
             )
             if (s == null) s = ""
             // 如果这俩相等，说明本次变动是 APP 自己改的。于是就不需要做处理。
-            if (tmpSettingValue == s) return
+            if (SettingValueWriter.mirror == s) return
             doDaemon(s)
         }
     }
@@ -121,30 +121,18 @@ class daemonService : Service() {
             }
         }
         if (add.length > 0) {
-            tmpSettingValue = add.toString() + s
-            // 【S3】WRITE_SECURE_SETTINGS 缺失时 putString 抛 SecurityException，不得崩溃前台服务：
-            // 失败即 return 停止本次恢复循环。
-            // 【F5】恢复失败必须可感知：对本轮 restored 列表逐个 markFailed（方案 §四 三重可感知硬约束），
-            // 修复 daemon-only 服务恢复失败永久静默的问题（原仅 return 不 markFailed）
+            // 【写入协议】镜像同步 / 写 / 读回校准 / 异常回滚 收口 SettingValueWriter.commit（唯一实现）。
+            // 注：基值改用 commit 的**新鲜读回**（原为观察者传入的 s）—— 若循环期间有外部改动，
+            // 旧写法会用过期基值整体覆盖、丢掉那次外部改动；新写法把它保留下来。
             try {
-                Settings.Secure.putString(
-                    contentResolver,
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-                    tmpSettingValue,
-                )
+                SettingValueWriter.commit(this@daemonService) { add.toString() + it }
             } catch (e: Exception) {
+                // 【S3】WRITE_SECURE_SETTINGS 缺失时 putString 抛 SecurityException，不得崩溃前台服务：
+                // 失败即 return 停止本次恢复循环。
+                // 【F5】恢复失败必须可感知：对本轮 restored 列表逐个 markFailed（方案 §四 三重可感知硬约束），
+                // 修复 daemon-only 服务恢复失败永久静默的问题（原仅 return 不 markFailed）
                 for (id in restored) {
                     RestartPrefs.markFailed(this, id)
-                }
-                // 【P6-b】写失败回滚镜像为读取到的实际值（与 tryEnable 的 R3 回滚对称），
-                // 防镜像失真致观察者对后续外部变化误跳过
-                try {
-                    val actual = Settings.Secure.getString(
-                        contentResolver,
-                        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-                    )
-                    tmpSettingValue = actual ?: ""
-                } catch (ignored: Exception) {
                 }
                 return
             }
@@ -155,13 +143,6 @@ class daemonService : Service() {
                 mark.putLong(RestartPrefs.AUTO_RESTORED_PREFIX + id, now)
             }
             mark.apply()
-            // 【M1-r10】写成功后读回实际值校准镜像（写 → 读回校准三段式，与 tryEnable/Worker 口径一致），
-            // 防止观察者对后续外部变化误跳过
-            val after = Settings.Secure.getString(
-                contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            )
-            if (after != null) tmpSettingValue = after
             notification.setContentText(
                 add1.toString() + getString(
                     R.string.notification_keep_time,
@@ -201,7 +182,7 @@ class daemonService : Service() {
         for (i in list.indices) {
             l.add(list[i].id)
         }
-        // 注册监视器，读取当前设置项并存到 tmpSettingValue
+        // 注册监视器，读取当前设置项并存到 SettingValueWriter.mirror
         mContentOb = SettingsValueChangeContentObserver()
         contentResolver.registerContentObserver(
             Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES),
@@ -214,7 +195,7 @@ class daemonService : Service() {
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
         )
         if (initial == null) initial = ""
-        tmpSettingValue = initial
+        SettingValueWriter.mirror = initial
 
         registerReceiver(myReceiver, IntentFilter("android.intent.action.SCREEN_ON"))
         receiverRegistered = true
@@ -258,7 +239,7 @@ class daemonService : Service() {
 
         // 先检查 pendingEnable 残留并补 enable【盲审修订 P0】，再做一次保活
         compensatePendingEnables()
-        doDaemon(tmpSettingValue)
+        doDaemon(SettingValueWriter.mirror)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -299,50 +280,28 @@ class daemonService : Service() {
             }
         }
         if (any) {
-            // 补 enable 改变了设置串，同步 tmpSettingValue 防自我触发
+            // 补 enable 改变了设置串，同步 SettingValueWriter.mirror 防自我触发
             var s = Settings.Secure.getString(
                 contentResolver,
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
             )
             if (s == null) s = ""
-            tmpSettingValue = s
+            SettingValueWriter.mirror = s
         }
     }
 
     private fun tryEnable(serviceId: String): Boolean {
         return try {
-            var cur = Settings.Secure.getString(
-                contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            )
-            if (cur == null) cur = ""
-            if (RestartPrefs.containsService(cur, serviceId)) return true
-            // 【R3】写入前同步静态镜像为写入后值（与 doDaemon/Worker F1 模式一致）：
+            if (RestartPrefs.containsService(SettingValueWriter.read(this), serviceId)) return true
+            // 【R3】写入+镜像协议收口 SettingValueWriter.commit（唯一实现）：
             // 补偿恰逢 Worker 重启窗口（disable 后 enable 前）时，观察者把本次变化视为
             // 自己写的而跳过回写，不再把 disabled 中的服务提前 enable
-            val newValue = RestartPrefs.prependService(cur, serviceId)
-            tmpSettingValue = newValue
-            Settings.Secure.putString(
-                contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-                newValue,
-            )
-            val after = Settings.Secure.getString(
-                contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            )
-            if (after != null) tmpSettingValue = after // 以读回实际值校准镜像
-            after != null && RestartPrefs.containsService(after, serviceId)
-        } catch (e: Exception) {
-            // 【R3】写入异常回滚镜像为实际值，防镜像失真致观察者对后续外部变化误跳过（与 M-e 同源）
-            try {
-                val actual = Settings.Secure.getString(
-                    contentResolver,
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-                )
-                tmpSettingValue = actual ?: ""
-            } catch (ignored: Exception) {
+            val after = SettingValueWriter.commit(this) {
+                RestartPrefs.prependService(it, serviceId)
             }
+            RestartPrefs.containsService(after, serviceId)
+        } catch (e: Exception) {
+            // 【R3】写入异常：镜像已在 commit 内回滚为实际值（防观察者对后续外部变化误跳过），此处只决定返回值
             false
         }
     }
@@ -401,8 +360,8 @@ class daemonService : Service() {
          * ⚠️ `@JvmField` 而非 `@JvmStatic`：要的是**静态字段**，不是静态访问器。
          * `@Volatile` 不可省（跨线程可见性）。
          */
-        @JvmField
-        @Volatile
-        var tmpSettingValue: String = ""
+        // 【归属变更】写方镜像移入 SettingValueWriter.mirror（原 SettingValueWriter.mirror）：
+        // 此前「写前同步 / 读回校准 / 异常回滚」三段散在 5 处手写、镜像跨两个类两种归属。
+        // 现收口为唯一实现，观察者读 SettingValueWriter.mirror 判自写。
     }
 }

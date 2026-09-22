@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
  *   开头检查残留立即补 enable
  * - enable 失败落盘告警【二轮修订 P1】；卸载清理（含置顶标记）【二轮修订 P2】
  * - 合并静默日志通知（IMPORTANCE_LOW，可在设置关）【二轮修订】
- * - 【F1】重启窗口与 daemonService.tmpSettingValue 静态镜像协调：disable 前/enable 读回确认后
+ * - 【F1】重启窗口与 SettingValueWriter.mirror 静态镜像协调：disable 前/enable 读回确认后
  *   更新镜像，daemon 观察者把窗口内变化视为自己写的而跳过回写（防秒级回写吞掉真实重启）
  * - 【F2】成功路径不再 pruneDaemon（防误清保活锁，清理由 removeCompletely 卸载分支承担）
  * - 【F4】写 disable 后重读确认生效；未生效 → markFailed 可感知并跳过本轮（不 markRestarted、不发通知）
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit
  *    那会改变线程模型与 1.5s 窗口的语义。
  * 3. `Boolean.TRUE.equals(value)` 原样保留（值来自 `SharedPreferences.getAll()` 的 `Object`，
  *    直接 `== true` 会引入装箱比较的歧义）。
- * 4. 静态镜像 `daemonService.tmpSettingValue` 的四处同步点**一处都不能少**：
+ * 4. 静态镜像 `SettingValueWriter.mirror` 的四处同步点**一处都不能少**：
  *    disable 前、disable 读回失败回滚、enable 读回确认后、tryEnable 异常回滚。
  */
 class RestartWorker(
@@ -126,17 +126,14 @@ class RestartWorker(
             // disable 前先落盘 pendingEnable（中断补偿）
             RestartPrefs.addPendingEnable(ctx, id)
             val cur = readSettingValue(ctx)
-            val disabled = RestartPrefs.removeService(cur, id)
-            // 【F1】重启窗口协调：disable 写入前先把静态镜像置为 disabled 值，
-            // daemon 观察者（同进程）将本次变化视为自己写的而跳过回写，1.5s 窗口内干净重启真实发生
-            daemonService.tmpSettingValue = disabled
-            writeSettingValue(ctx, disabled)
+            // 【F1/F4】写入+镜像协议收口 SettingValueWriter.commit（唯一实现）：
+            // 写前同步镜像 → daemon 观察者（同进程）把本次变化视为自己写的而跳过回写，
+            // 1.5s 重启窗口内干净重启真实发生
+            SettingValueWriter.commit(ctx) { RestartPrefs.removeService(it, id) }
             // 【F4】写 disable 后重读确认生效；未生效（如 SecurityException 静默失败）→ markFailed
             // 可感知并跳过本轮（不 markRestarted、不发通知），防 enable 幂等命中误报"已重启"并推进 lastRestart
-            if (RestartPrefs.containsService(readSettingValue(ctx), id)) {
+            if (RestartPrefs.containsService(SettingValueWriter.read(ctx), id)) {
                 RestartPrefs.markFailed(ctx, id)
-                // 镜像回滚为实际值，防 daemon 观察者对后续外部变化误跳过
-                daemonService.tmpSettingValue = readSettingValue(ctx)
                 continue
             }
             SystemClock.sleep(1500)
@@ -144,7 +141,7 @@ class RestartWorker(
             val ok = tryEnable(ctx, id)
             if (ok) {
                 // 【F1】enable 读回确认成功后同步静态镜像为启用后实际值
-                daemonService.tmpSettingValue = readSettingValue(ctx)
+                SettingValueWriter.mirror = readSettingValue(ctx)
                 RestartPrefs.removePendingEnable(ctx, id)
                 RestartPrefs.markRestarted(ctx, id)
                 RestartPrefs.clearFailed(ctx, id)
@@ -208,28 +205,17 @@ class RestartWorker(
         }
     }
 
-    /** 写回 enable（复用 tmpSettingValue 同构逻辑：serviceId 前插）；@return 是否确认生效 */
+    /** 写回 enable（serviceId 前插，词法走 RestartPrefs）；@return 是否确认生效 */
     private fun tryEnable(ctx: Context, id: String): Boolean {
         return try {
-            val cur = readSettingValue(ctx)
-            if (RestartPrefs.containsService(cur, id)) return true
-            val newValue = RestartPrefs.prependService(cur, id)
-            // 【P6-c】写设置后同步静态镜像（与 F1 主路径、daemon tryEnable R3 口径统一）：
+            if (RestartPrefs.containsService(SettingValueWriter.read(ctx), id)) return true
+            // 【P6-c】写入+镜像协议收口 SettingValueWriter.commit（唯一实现）：
             // 补 enable 的变化对 daemon 观察者视为自己写的而跳过回写，
             // 消除补 enable 成功后 daemon 多跑一轮无谓 doDaemon；读回后以实际值校准
-            daemonService.tmpSettingValue = newValue
-            writeSettingValue(ctx, newValue)
-            val after = readSettingValue(ctx)
-            // 读回后无条件以实际值校准镜像（与 daemonService.tryEnable 的 "if (after != null) tmpSettingValue = after" 对齐，
-            // 修复重构前 Java 侧 !after.isEmpty() vs after != null 的分叉；空串亦为真实读回值，须照实校准防镜像失真）
-            daemonService.tmpSettingValue = after
+            val after = SettingValueWriter.commit(ctx) { RestartPrefs.prependService(it, id) }
             RestartPrefs.containsService(after, id)
         } catch (e: Exception) {
-            // 【P6-c】异常路径镜像回滚为实际值（与 daemon tryEnable 的 R3 回滚对称），防失真
-            try {
-                daemonService.tmpSettingValue = readSettingValue(ctx)
-            } catch (ignored: Exception) {
-            }
+            // 异常路径的镜像回滚已在 commit 内完成，此处只决定返回值
             false
         }
     }
