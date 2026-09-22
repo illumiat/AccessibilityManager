@@ -52,6 +52,10 @@ dependencies {
     // 设计系统骨架（token + 组件外观），以 api 暴露 material3/ui/foundation。
     implementation project(':core:designsystem')
 
+    // 核心逻辑回归测试（设置串纯函数：历史缺陷 M1/M2 的判定面）。
+    // 口径与 :core:designsystem 一致。
+    testImplementation libs.junit
+
     // 过渡期保留：XML 主题属性是主题切换（setTheme）的载体，Compose 侧与 View 侧共用同一份配色。
     // 全部页面迁移完成后应移除。
     implementation libs.material
