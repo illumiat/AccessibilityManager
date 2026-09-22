@@ -12,10 +12,16 @@ android {
     defaultConfig {
         applicationId "com.accessibilitymanager"
         minSdk 24
-        // targetSdk 保持 33：保活链路（前台服务/广播注册）不触碰平台行为变更。
-        targetSdk 33
-        versionCode 17
-        versionName "1.3.0"
+        // targetSdk 定在 Android 10（API 29）：**不往高走**。理由是保活链：
+        //   targetSdk >= 31 → Android 12+ 前台服务启动限制（ForegroundServiceStartNotAllowedException）
+        //   targetSdk >= 33 → 通知权限需运行时申请（漏申请就拉不起前台服务）
+        //   targetSdk >= 34 → 必须声明 foregroundServiceType
+        // 本应用是自分发（GitHub Release），**没有上架门槛要求 targetSdk 够新**，
+        // 故取 29 让上述限制全部不生效 —— 保活链不必与平台限制对抗。
+        // compileSdk 35 只影响编译期 API 可见性，与运行期行为限制无关。
+        targetSdk 29
+        versionCode 18
+        versionName "1.3.1"
     }
 
     buildTypes {
