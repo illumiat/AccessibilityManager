@@ -14,8 +14,8 @@ android {
         minSdk 24
         // targetSdk 保持 33：保活链路（前台服务/广播注册）不触碰平台行为变更。
         targetSdk 33
-        versionCode 14
-        versionName "1.2.3"
+        versionCode 15
+        versionName "1.2.4"
     }
 
     buildTypes {

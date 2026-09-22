@@ -1,11 +1,10 @@
 package com.accessibilitymanager.ui.detail
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -90,12 +89,13 @@ class DetailHost {
  * 故走规范明说的**降级实色**路径：`surfaceContainerHigh` 实色 ——
  * 「降级是必要条件，不是可选优化」。**不要自创中间不透明度**（如 92%），那两头不靠。
  *
- * 遮罩用 `colorScheme.scrim`（`AppTheme` 里已是 `Color.Black.copy(alpha = SCRIM_ALPHA)` = 32% 实色），
- * 承担「阻断交互」，**不做模糊**（规范 §11.1 明说模态遮罩不模糊）。
+ * 遮罩**透明、只阻断交互、不压暗背景** —— 这是对规范 §11.1/§12.2「scrim 32% 实色」的
+ * **一处偏离**，理由见下方遮罩处的注释（灰底会切断共享元素的飞行路径）。
  *
  * ## 出现／消失动效
  *
- * 规范 §7：元素出现／消失用 `fastEffectsSpec`（淡入淡出 + 轻微位移），**不另设时长**。
+ * **整卡不加淡入淡出**：图标走共享元素的位移，容器若再叠一层 fade，
+ * 位移与透明度会**同时作用在图标上**（实测表现为抖动）。故位移独占图标的运动、卡片体直接落位。
  *
  * @param host 宿主状态（打开哪个服务、模型、意图回调）
  * @param sharedScope 共享元素的 scope（由列表树根的 `SharedTransitionLayout` 提供）
@@ -109,23 +109,31 @@ fun DetailOverlay(
 ) {
     val serviceId = host.serviceId ?: return
     val callback = host.callback ?: return
-    val motion = MaterialTheme.motionScheme
 
     AnimatedVisibility(
         visible = host.isOpen,
         modifier = modifier.fillMaxSize(),
-        enter = fadeIn(animationSpec = motion.fastEffectsSpec()),
-        exit = fadeOut(animationSpec = motion.fastEffectsSpec()),
+        // 【动效归属】整卡**不加**淡入淡出 —— 图标要走共享元素的位移，
+        // 若容器再叠一层 fade，位移与透明度**同时作用在图标上**，实测表现为抖动。
+        // 位移独占图标的运动；卡片体直接落位（「从内容长出来」的隐喻不靠淡入表达）。
+        enter = EnterTransition.None,
+        exit = ExitTransition.None,
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             // 形态阈值（600dp）**实时**取值：每次重组按当前宽度选形态，
             // 旋转 / 分屏拖动 / 折叠屏开合都自动跟随 —— 故旧的「形态跟随 watcher」整段退役。
             val wide = maxWidth >= 600.dp
-            // 遮罩：scrim 角色本身就是 32% 实色（AppTheme 内合成），不叠额外 alpha、不模糊
+            // 【遮罩形态】**透明遮罩**：只承担「阻断交互」（点它关卡），**不压暗背景**。
+            //
+            // ⚠️ 这是对规范 §11.1 / §12.2「scrim 32% 实色」的**一处偏离**，理由必须记明：
+            // 那条写的是**对话框隐喻**（弹出物盖在被压暗的背景上）；而本卡片用共享元素
+            // **从列表内容里长出来**（§11.3「该共享」第一条：列表缩略图 → 详情头图）。
+            // 灰底会把「来源」压暗 = **亲手切断图标的飞行路径**，两个隐喻必然打架
+            // （实测观感被判为不成立：「卡片弹出为什么要把底下改成灰色的？」）。
+            // 取舍：保留**阻断交互**、去掉**压暗** —— 连续感优先于对话框的模态信号。
             Box(
                 Modifier
                     .matchParentSize()
-                    .background(MaterialTheme.colorScheme.scrim)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
