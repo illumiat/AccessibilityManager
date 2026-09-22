@@ -320,7 +320,7 @@ class daemonService : Service() {
             // 【R3】写入前同步静态镜像为写入后值（与 doDaemon/Worker F1 模式一致）：
             // 补偿恰逢 Worker 重启窗口（disable 后 enable 前）时，观察者把本次变化视为
             // 自己写的而跳过回写，不再把 disabled 中的服务提前 enable
-            val newValue = "$serviceId:$cur"
+            val newValue = RestartPrefs.prependService(cur, serviceId)
             tmpSettingValue = newValue
             Settings.Secure.putString(
                 contentResolver,

@@ -517,7 +517,10 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         }
         val serviceName = info.getId()
         val s = readSettingValue()
-        // 【MAJOR 10】开关串逻辑统一走 RestartPrefs 单一实现（与 daemon/Worker 共用，防双实现分叉）
+        // 【MAJOR 10】开关串的**单服务前置 / 移除**统一走 RestartPrefs 单一实现
+        // （daemonService 与 RestartWorker 的单服务前置已同口径，防双实现分叉）。
+        // ⚠️ 边界：daemonService.doDaemon 里「批量前置多个待补服务」是另一种形态，
+        // 仍在 daemonService 内拼串 —— 本次只收口单服务口径，批量形态待收（勿以为已全收）。
         tmpSettingValue = if (checked) {
             RestartPrefs.prependService(s, serviceName)
         } else {

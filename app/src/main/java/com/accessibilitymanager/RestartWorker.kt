@@ -218,7 +218,7 @@ class RestartWorker(
         return try {
             val cur = readSettingValue(ctx)
             if (RestartPrefs.containsService(cur, id)) return true
-            val newValue = "$id:$cur"
+            val newValue = RestartPrefs.prependService(cur, id)
             // 【P6-c】写设置后同步静态镜像（与 F1 主路径、daemon tryEnable R3 口径统一）：
             // 补 enable 的变化对 daemon 观察者视为自己写的而跳过回写，
             // 消除补 enable 成功后 daemon 多跑一轮无谓 doDaemon；读回后以实际值校准
