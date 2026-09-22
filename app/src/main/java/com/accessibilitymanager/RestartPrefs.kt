@@ -132,6 +132,26 @@ class RestartPrefs private constructor() {
         @JvmStatic
         fun enabledCount(c: Context): Long = enabledIds(c).size.toLong()
 
+        /**
+         * 周期单位换算因子（索引即单位：0=分钟、1=小时、2=天）——
+         * 「整除取最大单位」这条规则的**唯一实现**见 [periodUnitIndex]。
+         */
+        @JvmField
+        val UNIT_FACTORS: LongArray = longArrayOf(1L, 60L, 1440L)
+
+        /**
+         * 「周期取大单位」的**唯一实现**：整天 > 整小时 > 分钟（返回 [UNIT_FACTORS] 的索引）。
+         *
+         * 曾有两份同构实现（`HomeFragment.formatPeriod` 的 `% 1440`/`% 60` 判定、
+         * `PeriodDialog.initialUnitIndex` 的 when 分支）。文案资源仍由调用方注入。
+         */
+        @JvmStatic
+        fun periodUnitIndex(periodMin: Long): Int = when {
+            periodMin % UNIT_FACTORS[2] == 0L -> 2
+            periodMin % UNIT_FACTORS[1] == 0L -> 1
+            else -> 0
+        }
+
         /** 卸载清理：移除该服务全部配置（含置顶标记）【二轮修订 P2】 */
         @JvmStatic
         fun removeCompletely(c: Context, serviceId: String) {

@@ -47,7 +47,7 @@ enum class ServiceDescKind {
  * |---|---|
  * | [serviceId] / [title] / [descriptionText] / [icon] | `AccessibilityServiceInfo` + `IconCache.Entry` |
  * | [enabled] | `RestartPrefs.isEnabledIn(settingValue, id)`（精确匹配，禁子串判断） |
- * | [locked] / [pinned] | daemon/top 内存镜像（`isLocked` / `isTop`） |
+ * | [locked] / [pinned] | daemon/top 内存镜像（宿主刷新列表时按 `daemonSet`/`topSet` 填入） |
  * | [restarting] / [failed] | `pendingEnable` / `failed` 集合 |
  * | [autoRestored] | `restart` SP 的 `AUTO_RESTORED_PREFIX + id`（窗口内视为已自动恢复） |
  *

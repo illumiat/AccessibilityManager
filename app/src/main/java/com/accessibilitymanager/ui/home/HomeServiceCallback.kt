@@ -28,10 +28,6 @@ interface HomeServiceCallback {
     /** 长按卡片 → 置顶切换。 */
     fun onItemLongClick(info: AccessibilityServiceInfo)
 
-    fun isTop(serviceId: String): Boolean
-
-    fun isLocked(serviceId: String): Boolean
-
     /** 定期重启摘要（如"每 24 小时"）；`null` = 未启用。 */
     fun restartSummary(serviceId: String): String?
 }

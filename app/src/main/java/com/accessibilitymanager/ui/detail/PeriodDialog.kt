@@ -31,7 +31,8 @@ import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
  *
  * 与旧实现同一组值，**不得改动**：预填用的整除判定、确认时的乘法都依赖它。
  */
-private val UnitFactors = longArrayOf(1L, 60L, 1440L)
+// 周期单位因子收口 RestartPrefs.UNIT_FACTORS（唯一实现；索引即单位：0=分钟 1=小时 2=天）
+private val UnitFactors = RestartPrefs.UNIT_FACTORS
 
 /**
  * 周期单位标签（顺序即 [UnitFactors] 的索引）。
@@ -88,12 +89,9 @@ fun PeriodDialog(
     onDismiss: () -> Unit,
     onConfirm: (Long) -> Unit,
 ) {
-    // 预填：按整除性自动选最大可用单位（整天 > 整小时 > 分钟）
-    val initialUnitIndex = when {
-        currentPeriodMin % 1440L == 0L -> 2
-        currentPeriodMin % 60L == 0L -> 1
-        else -> 0
-    }
+    // 预填：按整除性自动选最大可用单位（整天 > 整小时 > 分钟）——
+    // 收口 RestartPrefs.periodUnitIndex（唯一实现，原为第二份同构判定）
+    val initialUnitIndex = RestartPrefs.periodUnitIndex(currentPeriodMin)
     var text by remember {
         mutableStateOf((currentPeriodMin / UnitFactors[initialUnitIndex]).toString())
     }

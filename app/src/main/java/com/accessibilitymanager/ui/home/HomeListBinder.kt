@@ -23,7 +23,7 @@ import java.util.function.Consumer
  * ## 为什么带 [callback] 参数
  *
  * 该接口（[HomeServiceCallback]）由 `HomeFragment` 实现，且方法集
- * （`onToggle` / `onLockClick` / `onItemClick` / `onItemLongClick` / `isTop` / `isLocked` /
+ * （`onToggle` / `onLockClick` / `onItemClick` / `onItemLongClick` /
  * `restartSummary`）与列表所需动作**完全对应** —— 接入即是「换渲染层」，
  * 不触碰任何写入路径。（该接口原为 `ServiceAdapter.Callback`，随适配器退役迁出并改名。）
  *

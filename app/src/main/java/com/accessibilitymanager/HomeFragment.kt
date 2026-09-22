@@ -528,14 +528,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         refreshStates()
     }
 
-    override fun isTop(serviceId: String): Boolean {
-        return topSet.contains(serviceId)
-    }
-
-    override fun isLocked(serviceId: String): Boolean {
-        return daemonSet.contains(serviceId)
-    }
-
     override fun restartSummary(serviceId: String): String? {
         val cfg = RestartPrefs.get(requireContext(), serviceId)
         return if (cfg != null) formatPeriod(cfg.periodMin) else null
@@ -816,13 +808,14 @@ class HomeFragment : Fragment(), HomeServiceCallback {
 
     /** 周期展示：整小时/整天取大单位 */
     private fun formatPeriod(periodMin: Long): String {
-        if (periodMin % 1440 == 0L) {
-            return getString(R.string.period_display_days, (periodMin / 1440).toString())
+        // 周期取大单位收口 RestartPrefs.periodUnitIndex（唯一实现）；文案资源仍在此注入
+        val idx = RestartPrefs.periodUnitIndex(periodMin)
+        val value = periodMin / RestartPrefs.UNIT_FACTORS[idx]
+        return when (idx) {
+            2 -> getString(R.string.period_display_days, value.toString())
+            1 -> getString(R.string.period_display_hours, value.toString())
+            else -> getString(R.string.period_display_minutes, periodMin)
         }
-        if (periodMin % 60 == 0L) {
-            return getString(R.string.period_display_hours, (periodMin / 60).toString())
-        }
-        return getString(R.string.period_display_minutes, periodMin)
     }
 
     /** 相对时间："3 天前"（【二轮修订 P2】） */
