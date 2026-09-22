@@ -59,9 +59,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
 
     // 【P6】原 `emptyView` 字段已删（连同 `updateEmptyState()`）：
     // 零服务空态改由 Compose 的 `HomeScreen.EmptyState` 独任，不再有 View 侧开关。
-    private var banner: View? = null
-    private var bannerFailed: View? = null
-
     private val installed: MutableList<AccessibilityServiceInfo> = ArrayList()
     private val display: MutableList<AccessibilityServiceInfo> = ArrayList()
     private var searchQuery = ""
@@ -163,15 +160,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
                 )
             }
         }
-        banner = view.findViewById(R.id.banner)
-        bannerFailed = view.findViewById(R.id.banner_failed)
-
-        // 【P6】「去系统设置开启无障碍服务」的入口已随空态移交 Compose
-        // （HomeScreen.EmptyState 的 onOpenSystemSettings → HomeListBinder）。
-        view.findViewById<View>(R.id.banner_action).setOnClickListener {
-            PermissionHelper.showPermissionDialog(requireContext())
-        }
-
         // 【P3】搜索栏已迁入 Compose（HomeScreen 的 SearchField）：原 EditText 隐藏，
         // searchQuery 字段保留为唯一数据源，由 Compose 的 onQueryChange 回写。【P6】从布局删除此项。
         val searchLayout = view.findViewById<View>(R.id.search_layout)
@@ -246,7 +234,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         val granted = PermissionHelper.hasWritePermission(requireContext())
         if (::listState.isInitialized) listState.setPermission(granted)
         refreshStates()
-        updateBanners(granted)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -308,7 +295,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         for (id in ArrayList(RestartPrefs.getFailed(requireContext()))) {
             if (!isInstalledId(id)) RestartPrefs.removeCompletely(requireContext(), id)
         }
-        for (id in enabledRestartIds()) {
+        for (id in RestartPrefs.enabledIds(requireContext())) {
             if (!isInstalledId(id)) RestartPrefs.removeCompletely(requireContext(), id)
         }
         // 【惰性调度】卸载清理后若已无启用配置，取消空转的周期任务
@@ -322,18 +309,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         return false
     }
 
-    private fun enabledRestartIds(): List<String> {
-        val ids: MutableList<String> = ArrayList()
-        for (key in requireContext().getSharedPreferences("restart", 0).all.keys) {
-            if (key.endsWith(".enabled") &&
-                requireContext().getSharedPreferences("restart", 0).getBoolean(key, false)
-            ) {
-                ids.add(key.substring(0, key.length - ".enabled".length))
-            }
-        }
-        return ids
-    }
-
     private fun sortDisplay() {
         display.clear()
         display.addAll(installed)
@@ -341,10 +316,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         // 原 top.indexOf 子串定位在互为前缀的服务 id 上可双向 compare 同返回 1，
         // 违反比较器契约（TimSort 可能抛 "Comparison method violates its general contract"）。
         // 同一 id 在 topOrder 中至多出现一次（toggleTop 前插/移除保证），索引比较严格满足反对称性。
-        val topOrder: MutableList<String> = ArrayList()
-        for (t in top.split(":")) {
-            if (t.isNotEmpty()) topOrder.add(t)
-        }
+        val topOrder: List<String> = RestartPrefs.splitIds(top)
         Collections.sort(display, Comparator<AccessibilityServiceInfo> { info1, info2 ->
             val i1 = topOrder.indexOf(info1.getId())
             val i2 = topOrder.indexOf(info2.getId())
@@ -405,13 +377,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
     }
 
     /** 置顶串顺序（既有 sortDisplay 的 indexOf 排序依赖串顺序，故必须传 List 而非 Set）。 */
-    private fun topOrder(): List<String> {
-        val out: MutableList<String> = ArrayList()
-        for (id in sp.getString("top", "").orEmpty().split(":")) {
-            if (id.isNotEmpty()) out.add(id)
-        }
-        return out
-    }
+    private fun topOrder(): List<String> = RestartPrefs.splitIds(sp.getString("top", "").orEmpty())
 
     /** observer 路径的只读显示刷新：可见行开关态 + 详情卡定期重启区域（不写 Settings.Secure）【P4】 */
     private fun postStatesRefresh() {
@@ -434,13 +400,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         if (detailHost.isOpen && detailServiceId != null && detailRestartRefresher != null) {
             detailRestartRefresher!!.run()
         }
-    }
-
-    private fun updateBanners(granted: Boolean) {
-        val b = banner
-        if (b != null) b.visibility = if (granted) View.GONE else View.VISIBLE
-        val bf = bannerFailed
-        if (bf != null) bf.visibility = if (failedSet().isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun readSettingValue(): String {
@@ -916,9 +875,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         /** ":" 连接的 id 串 → 精确 id 集合【MAJOR 3】 */
         private fun fillIds(colonJoined: String, out: MutableSet<String>) {
             out.clear()
-            for (id in colonJoined.split(":")) {
-                if (id.isNotEmpty()) out.add(id)
-            }
+            out.addAll(RestartPrefs.splitIds(colonJoined))
         }
     }
 }

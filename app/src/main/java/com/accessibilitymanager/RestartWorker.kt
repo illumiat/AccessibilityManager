@@ -100,13 +100,8 @@ class RestartWorker(
 
     private fun executeDue(ctx: Context) {
         val data: SharedPreferences = ctx.getSharedPreferences("data", 0)
-        val ids = ArrayList<String>()
-        // 【M-d】循环外取一次 SP 快照并遍历 entry 集合，避免循环内重复 getSharedPreferences
-        for ((key, value) in ctx.getSharedPreferences("restart", 0).all) {
-            if (key.endsWith(".enabled") && java.lang.Boolean.TRUE == value) {
-                ids.add(key.substring(0, key.length - ".enabled".length))
-            }
-        }
+        // 【M-d】`.enabled` 扫描收口 RestartPrefs.enabledIds（唯一实现，原为第三份内联）
+        val ids = RestartPrefs.enabledIds(ctx)
         if (ids.isEmpty()) return
 
         val pm = ctx.packageManager

@@ -36,60 +36,6 @@
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="?attr/colorOnSurface" />
 
-            <!-- 未授权引导横幅 -->
-            <LinearLayout
-                android:id="@+id/banner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorErrorContainer"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal"
-                android:paddingStart="12dp"
-                android:paddingEnd="4dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/banner_text"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/banner_no_permission"
-                    android:textColor="?attr/colorOnErrorContainer" />
-
-                <Button
-                    android:id="@+id/banner_action"
-                    style="?attr/borderlessButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minHeight="44dp"
-                    android:text="@string/banner_action_auth"
-                    android:textColor="?attr/colorOnErrorContainer" />
-            </LinearLayout>
-
-            <!-- 恢复失败告警横幅 -->
-            <LinearLayout
-                android:id="@+id/banner_failed"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorErrorContainer"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp"
-                    android:text="@string/banner_restart_failed"
-                    android:textColor="?attr/colorOnErrorContainer" />
-            </LinearLayout>
         </LinearLayout>
 
         <!-- 右：搜索栏（手机 180dp 起步，平板 sw600dp 限宽 360dp 不无限拉伸） -->

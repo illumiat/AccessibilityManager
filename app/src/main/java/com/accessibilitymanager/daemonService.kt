@@ -88,7 +88,7 @@ class daemonService : Service() {
 
     private fun doDaemon(s: String) {
         val list = sp.getString("daemon", "")!!
-        val serviceNames = RestartPrefs.COLON.split(list) // 【P6-d】共用 Pattern 类常量
+        val serviceNames = RestartPrefs.splitIds(list) // 【P6-d】共用 Pattern 类常量
         val add = StringBuilder()
         val add1 = StringBuilder()
         val restored = ArrayList<String>() // 【MISSING 11】本次自动恢复的服务 id
@@ -349,7 +349,7 @@ class daemonService : Service() {
 
     private fun countDaemonServices(daemon: String): Int {
         var n = 0
-        for (s in RestartPrefs.COLON.split(daemon)) { // 【P6-d】共用 Pattern 类常量
+        for (s in RestartPrefs.splitIds(daemon)) { // 【P6-d】共用 Pattern 类常量
             if (s.isNotEmpty() && s != "null") n++
         }
         return Math.max(1, n)

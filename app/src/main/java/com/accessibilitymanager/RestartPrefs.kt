@@ -4,7 +4,6 @@ import android.app.AppOpsManager
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Process
-import java.util.regex.Pattern
 
 /**
  * per-服务定期重启配置（方案 §四）：enabled + periodMin + lastRestart，
@@ -19,9 +18,11 @@ import java.util.regex.Pattern
  *    此处的 11 处类级锁是有意的全局串行（daemon 主线程 / Worker / UI 三方并发读改写），
  *    不是顺手写法 —— 「怪癖记录：刻意设计」。
  * 2. **`Config` 字段被 Java 直接访问**（`cfg.enabled` / `cfg.periodMin` / `cfg.lastRestart`），
- *    故三个字段必须 `@JvmField`；同理 [COLON] 被 Java 以 `RestartPrefs.COLON` 静态访问，也需 `@JvmField`。
- * 3. **`split(":")` 语义已核对**：Java 会丢弃尾部空段、Kotlin 保留，但本文件所有使用点
- *    都有 `isEmpty()` 过滤（[splitIds] / [isEnabledIn] / [removeService]），故结果一致。
+ *    故三个字段必须 `@JvmField`。（原同段提到的 `COLON` 已随串切分收口删除；
+ *    且「被 Java 静态访问」的理由已随 `HomeFragment` Kotlin 化而消失。）
+ * 3. **`split(":")` 语义已核对**：Java 会丢弃尾部空段、Kotlin 保留。现已把切分**收口进 [splitIds]**
+ *    （跳过空段），[isEnabledIn] / [removeService] 亦经它取段 —— 全文件只剩一处切分实现，
+ *    该 Java/Kotlin 差异随之在单点被吸收。
  */
 class RestartPrefs private constructor() {
 
@@ -59,11 +60,7 @@ class RestartPrefs private constructor() {
         const val AUTO_RESTORED_PREFIX = "last_auto_restored."
         const val AUTO_RESTORED_WINDOW_MS = 5L * 60 * 1000
 
-        /** 【P6-d】":" 段切分共用 Pattern 类常量（daemonService.doDaemon/countDaemonServices 复用，免每次 split 重复编译） */
-        @JvmField
-        val COLON: Pattern = Pattern.compile(":")
-
-        private fun sp(c: Context): SharedPreferences =
+          private fun sp(c: Context): SharedPreferences =
             c.applicationContext.getSharedPreferences("restart", 0)
 
         @JvmStatic
@@ -111,15 +108,29 @@ class RestartPrefs private constructor() {
             sp(c).edit().putLong("$serviceId.last", System.currentTimeMillis()).apply()
         }
 
+        /**
+         * 全部已启用的定期重启服务 id —— 「`.enabled` 键扫描」的唯一实现。
+         *
+         * 曾有三份重复实现（本函数前身 [enabledCount]、`HomeFragment.enabledRestartIds`、
+         * `RestartWorker.executeDue` 内联），语义同为「`.enabled` 后缀且值为真 -> 前缀即 id」。
+         *
+         * 判真口径取 `java.lang.Boolean.TRUE == value`（与旧 enabledCount / Worker 内联一致）：
+         * 若某键存的不是 Boolean，静默算作 false，而非 `getBoolean` 抛 `ClassCastException`。
+         */
         @JvmStatic
-        fun enabledCount(c: Context): Long {
-            var n = 0L
-            val all = sp(c).all
-            for ((key, value) in all) {
-                if (key.endsWith(".enabled") && java.lang.Boolean.TRUE == value) n++
+        fun enabledIds(c: Context): List<String> {
+            val out = ArrayList<String>()
+            for ((key, value) in sp(c).all) {
+                if (key.endsWith(".enabled") && java.lang.Boolean.TRUE == value) {
+                    out.add(key.substring(0, key.length - ".enabled".length))
+                }
             }
-            return n
+            return out
         }
+
+        /** 已启用配置数（惰性调度判据：为 0 时取消周期任务）。 */
+        @JvmStatic
+        fun enabledCount(c: Context): Long = enabledIds(c).size.toLong()
 
         /** 卸载清理：移除该服务全部配置（含置顶标记）【二轮修订 P2】 */
         @JvmStatic
@@ -281,24 +292,22 @@ class RestartPrefs private constructor() {
         @JvmStatic
         fun isEnabledIn(settingValue: String?, serviceId: String?): Boolean {
             if (settingValue.isNullOrEmpty() || serviceId.isNullOrEmpty()) return false
-            val expanded = expandedForm(serviceId)
-            for (seg in settingValue.split(":")) {
-                if (seg.isEmpty()) continue
-                if (seg == serviceId || seg == expanded) return true
-            }
+              val expanded = expandedForm(serviceId)
+              for (seg in splitIds(settingValue)) {
+                  if (seg == serviceId || seg == expanded) return true
+              }
             return false
         }
 
         /** 从已开启服务串中移除目标【M2：按 ":" 段边界过滤重建，替代 replace 子串链（"pkg/.SvcX:pkg/.Svc" 不再残留 "X:" 垃圾段）】 */
         @JvmStatic
         fun removeService(settingValue: String, serviceId: String): String {
-            val expanded = expandedForm(serviceId)
-            val kept = ArrayList<String>()
-            for (seg in settingValue.split(":")) {
-                if (seg.isEmpty()) continue
-                if (seg == serviceId || seg == expanded) continue
-                kept.add(seg)
-            }
+              val expanded = expandedForm(serviceId)
+              val kept = ArrayList<String>()
+              for (seg in splitIds(settingValue)) {
+                  if (seg == serviceId || seg == expanded) continue
+                  kept.add(seg)
+              }
             return kept.joinToString(":")
         }
 
@@ -317,7 +326,8 @@ class RestartPrefs private constructor() {
         private fun dataSp(c: Context): SharedPreferences =
             c.applicationContext.getSharedPreferences("data", 0)
 
-        private fun splitIds(colonJoined: String): MutableList<String> {
+        /** ":" 连接的 id 串 -> 段列表（跳过空段）—— 串切分的唯一实现。 */
+        fun splitIds(colonJoined: String): MutableList<String> {
             val out = ArrayList<String>()
             for (id in colonJoined.split(":")) {
                 if (id.isNotEmpty()) out.add(id)
