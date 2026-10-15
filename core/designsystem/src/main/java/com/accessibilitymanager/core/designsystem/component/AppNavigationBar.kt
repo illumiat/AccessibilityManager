@@ -1,6 +1,9 @@
 package com.accessibilitymanager.core.designsystem.component
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
@@ -8,7 +11,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.accessibilitymanager.core.designsystem.theme.ShapeTokens
+import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
 
 /**
  * 底部导航的一个目的。
@@ -61,9 +67,19 @@ data class NavItem(
  * `NavigationBar` 自身高度即为规范要求的 80dp（`SizeTokens.NavigationBarHeight`），
  * **不额外覆写** —— 覆写会破坏 MD3 的触控目标与标签基线。
  *
+ * ## 悬浮形态（`floating = true`）
+ *
+ * 把整条底栏收进一个**胶囊 `Surface`**（`ShapeTokens.Full` + `surfaceContainerHigh`），
+ * 左右与下方留出外边距 —— 于是它**浮在内容之上**而不是贴边占满。
+ * 底色口径与详情卡一致（同一套浮层规则，不自创形状与色值）；
+ * 内部 `NavigationBar` 的容器色改为透明，让胶囊底色透出来。
+ *
+ * ⚠️ 悬浮时内容会从它下方经过 —— **遮挡由调用方负责让位**（调用方知道自己的内容布局）。
+ *
  * @param windowInsets 默认取 MD3 的窗口 insets。**活动窗口未开启 edge-to-edge 时，
  *        必须由调用方传 `WindowInsets(0)`** —— 否则系统已给内容让出的底部区域
  *        会被二次让位，底栏被顶高（缺陷清单模式 9 的 insets 一致性问题）。
+ * @param floating 是否悬浮形态（默认贴底全宽）。
  */
 @Composable
 fun AppNavigationBar(
@@ -72,10 +88,39 @@ fun AppNavigationBar(
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
+    floating: Boolean = false,
+) {
+    if (!floating) {
+        AppNavigationBarContent(items, selectedKey, onSelect, modifier, windowInsets, null)
+        return
+    }
+    // 悬浮：胶囊壳由本层提供，内部栏底色透明
+    Surface(
+        shape = ShapeTokens.Full,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = modifier.padding(
+            start = SpacingTokens.lg,
+            end = SpacingTokens.lg,
+            bottom = SpacingTokens.sm,
+        ),
+    ) {
+        AppNavigationBarContent(items, selectedKey, onSelect, Modifier, windowInsets, Color.Transparent)
+    }
+}
+
+@Composable
+private fun AppNavigationBarContent(
+    items: List<NavItem>,
+    selectedKey: String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier,
+    windowInsets: WindowInsets,
+    containerColor: Color?,
 ) {
     NavigationBar(
         modifier = modifier,
         windowInsets = windowInsets,
+        containerColor = containerColor ?: NavigationBarDefaults.containerColor,
     ) {
         items.forEach { item ->
             val selected = item.key == selectedKey

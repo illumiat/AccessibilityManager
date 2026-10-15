@@ -41,6 +41,8 @@ data class SettingsUiState(
     val toast: Boolean,
     val hide: Boolean,
     val restartNotify: Boolean,
+    /** 底栏是否悬浮（`data` SP 的 `float_bar`）。 */
+    val floatBar: Boolean,
     /** 已启用定期重启的服务数（文案由 UI 层用资源格式化：模型不持有文案）。 */
     val restartEnabledCount: Int,
     val authGranted: Boolean,
@@ -102,6 +104,7 @@ fun SettingsScreen(
     onToastChange: (Boolean) -> Unit,
     onHideChange: (Boolean) -> Unit,
     onRestartNotifyChange: (Boolean) -> Unit,
+    onFloatBarChange: (Boolean) -> Unit,
     onRegrantClick: () -> Unit,
     onHelpClick: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
@@ -157,6 +160,14 @@ fun SettingsScreen(
             supporting = stringResource(R.string.setting_hide_desc),
             checked = ui.hide,
             onCheckedChange = onHideChange,
+        )
+
+        // 底栏形态：属**界面呈现**的开关，不改变保活行为，故与功能开关分开说明
+        SwitchRow(
+            title = stringResource(R.string.setting_float_bar),
+            supporting = stringResource(R.string.setting_float_bar_desc),
+            checked = ui.floatBar,
+            onCheckedChange = onFloatBarChange,
         )
 
         // ── 定期重启组 ──

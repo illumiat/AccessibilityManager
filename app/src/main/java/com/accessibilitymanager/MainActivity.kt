@@ -17,6 +17,8 @@ import androidx.fragment.app.FragmentTransaction
 import com.accessibilitymanager.core.designsystem.component.AppNavigationBar
 import com.accessibilitymanager.core.designsystem.component.NavItem
 import com.accessibilitymanager.core.designsystem.theme.AppTheme
+import com.accessibilitymanager.core.designsystem.theme.SizeTokens
+import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
 import com.accessibilitymanager.core.designsystem.theme.ThemeCatalog
 import com.google.android.material.color.DynamicColors
 
@@ -85,11 +87,49 @@ class MainActivity : AppCompatActivity() {
                     // 这里传 0 避免底栏被二次让位而顶高（缺陷清单模式 9）。
                     // 【P6】全页面 Compose 化并统一 edge-to-edge 后，改回默认 insets。
                     windowInsets = WindowInsets(0, 0, 0, 0),
+                    floating = floatingBar,
                 )
             }
         }
 
         showTab(currentTab)
+
+        // 【即时生效】悬浮开关在设置页，改完 Activity 不会重新 resume ——
+        // 故监听 SP 变化即时应用形态，否则要等下次进前台才生效。
+        dataSp.registerOnSharedPreferenceChangeListener(spListener)
+        applyBarForm()
+    }
+
+    override fun onDestroy() {
+        dataSp.unregisterOnSharedPreferenceChangeListener(spListener)
+        super.onDestroy()
+    }
+
+    /** 底栏是否悬浮（设置页「悬浮底栏」）。 */
+    private var floatingBar = true
+
+    private val dataSp by lazy { getSharedPreferences("data", 0) }
+
+    private val spListener =
+        android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "float_bar") applyBarForm()
+        }
+
+    /**
+     * 应用底栏形态：悬浮时内容会从栏下经过，故给内容容器**留出让位高度**，
+     * 否则列表最后一项会被永久压在栏下、滚不出来。
+     *
+     * 让位高度 = `NavigationBarHeight`(80dp) + 胶囊下外边距 `sm`(8dp)。
+     */
+    private fun applyBarForm() {
+        floatingBar = dataSp.getBoolean("float_bar", true)
+        val clearance = if (floatingBar) {
+            ((SizeTokens.NavigationBarHeight + SpacingTokens.sm).value * resources.displayMetrics.density).toInt()
+        } else {
+            0
+        }
+        findViewById<android.view.View>(R.id.fragment_container)
+            .setPadding(0, 0, 0, clearance)
     }
 
     private fun showTab(tab: String) {

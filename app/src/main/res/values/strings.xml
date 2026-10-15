@@ -188,4 +188,7 @@
     <string name="list_error_title">服务列表读取失败</string>
     <string name="list_error_desc">读取无障碍服务信息时出错，可重试；若持续失败请检查是否存在系统限制</string>
     <string name="list_error_action">重试</string>
+    <!-- 设置页：底栏悬浮形态 -->
+    <string name="setting_float_bar">悬浮底栏</string>
+    <string name="setting_float_bar_desc">底栏浮在内容之上；关闭则贴底占满</string>
 </resources>

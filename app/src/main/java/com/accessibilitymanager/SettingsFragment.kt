@@ -58,6 +58,7 @@ class SettingsFragment : Fragment() {
             toast = true,
             hide = true,
             restartNotify = true,
+            floatBar = true,
             restartEnabledCount = 0,
             authGranted = false,
             judgementFocus = false,
@@ -113,6 +114,11 @@ class SettingsFragment : Fragment() {
                     onRestartNotifyChange = {
                         sp.edit().putBoolean("restart_notify", it).apply()
                         ui = ui.copy(restartNotify = it)
+                    },
+                    // 只写 SP：MainActivity 注册了 SP 变化监听，形态即时生效
+                    onFloatBarChange = {
+                        sp.edit().putBoolean("float_bar", it).apply()
+                        ui = ui.copy(floatBar = it)
                     },
                     onRegrantClick = { PermissionHelper.showPermissionDialog(requireContext()) },
                     onHelpClick = { showHelp = true },
@@ -219,6 +225,7 @@ class SettingsFragment : Fragment() {
             toast = sp.getBoolean("toast", true),
             hide = sp.getBoolean("hide", true),
             restartNotify = sp.getBoolean("restart_notify", true),
+            floatBar = sp.getBoolean("float_bar", true),
             restartEnabledCount = RestartPrefs.enabledCount(ctx).toInt(),
             authGranted = PermissionHelper.hasWritePermission(ctx),
             // 判定模式：appops 每页校验（PACKAGE_USAGE_STATS 可被 ROM 重置）【三轮 P1 修正】
