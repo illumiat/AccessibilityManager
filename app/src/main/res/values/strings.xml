@@ -188,10 +188,4 @@
     <string name="list_error_title">服务列表读取失败</string>
     <string name="list_error_desc">读取无障碍服务信息时出错，可重试；若持续失败请检查是否存在系统限制</string>
     <string name="list_error_action">重试</string>
-    <!-- 底部悬浮栏：开关的选中态语义（%1$s = 开关名） -->
-    <string name="quick_toggle_on">%1$s，已开启</string>
-    <string name="quick_toggle_off">%1$s，已关闭</string>
-    <!-- 设置页：底部悬浮栏自身的开关 -->
-    <string name="setting_quick_bar">底部悬浮栏</string>
-    <string name="setting_quick_bar_desc">在主页底部悬浮一排常用开关</string>
 </resources>

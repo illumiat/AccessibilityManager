@@ -34,7 +34,6 @@ import com.accessibilitymanager.ui.detail.DetailInfo
 import com.accessibilitymanager.ui.detail.DetailRestart
 import com.accessibilitymanager.ui.detail.ServiceDetailCallback
 import com.accessibilitymanager.ui.home.HomeListBinder
-import com.accessibilitymanager.ui.home.QuickBarHost
 import com.accessibilitymanager.ui.home.HomeListState
 import com.accessibilitymanager.ui.home.HomeServiceCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -87,9 +86,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
      * 而规范 §11.3 要求页面转场用共享元素，故弹卡必须与列表同处一个 `SharedTransitionLayout`。
      */
     private val detailHost = DetailHost()
-
-    /** 底部悬浮栏宿主状态（四个开关与设置页同源，均落 `data` SP）。 */
-    private val quickBarHost = QuickBarHost()
 
     private lateinit var contentObserver: SettingsValueChangeContentObserver
     private var shizukuListener: Shizuku.OnRequestPermissionResultListener? = null
@@ -230,8 +226,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         super.onResume()
         // 【二轮修订 P1】从系统设置返回时重查列表与权限，不依赖 ContentObserver 事件
         loadInstalled()
-        // 悬浮栏：每次回到主页都从 SP 重读（它自己的开关在设置页，可能刚被改过）
-        syncQuickBar()
         val granted = PermissionHelper.hasWritePermission(requireContext())
         if (::listState.isInitialized) listState.setPermission(granted)
         refreshStates()
@@ -242,31 +236,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         // 【MISSING 12】旋转保留卡片状态：Activity 重建（Manifest 未声明 `orientation`）会丢 Compose 状态，
         // 故把「当前打开的服务 id」写进 savedInstanceState，重建后回填并重开（模型随之重提交）。
         detailServiceId?.let { outState.putString(KEY_DETAIL_SERVICE_ID, it) }
-    }
-
-    /**
-     * 悬浮栏状态同步：从 `data` SP 重读四个功能开关与栏自身的开关，并注入写入回调。
-     *
-     * 【同一语义全局唯一取值】四个开关的真值来源就是设置页那份 SP，此处**只读不另存**；
-     * 写入同样落回该 SP —— 设置页与悬浮栏改的是同一个值，不产生第二份真相。
-     */
-    private fun syncQuickBar() {
-        quickBarHost.enabled = sp.getBoolean("quick_bar", true)
-        quickBarHost.boot = sp.getBoolean("boot", true)
-        quickBarHost.toast = sp.getBoolean("toast", true)
-        quickBarHost.hide = sp.getBoolean("hide", true)
-        quickBarHost.restartNotify = sp.getBoolean("restart_notify", true)
-        quickBarHost.onBoot = { v: Boolean -> sp.edit().putBoolean("boot", v).apply(); quickBarHost.boot = v }
-        quickBarHost.onToast = { v: Boolean -> sp.edit().putBoolean("toast", v).apply(); quickBarHost.toast = v }
-        quickBarHost.onHide = { v: Boolean ->
-            sp.edit().putBoolean("hide", v).apply()
-            quickBarHost.hide = v
-            applyHideFromRecents() // 与设置页一致：hide 改动即时生效
-        }
-        quickBarHost.onRestartNotify = { v: Boolean ->
-            sp.edit().putBoolean("restart_notify", v).apply()
-            quickBarHost.restartNotify = v
-        }
     }
 
     override fun onDestroy() {
@@ -389,7 +358,6 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         HomeListBinder.bind(
             lv,
             listState,
-            quickBarHost,
             detailHost,
             this,
             { q ->
