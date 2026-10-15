@@ -123,11 +123,13 @@ class MainActivity : AppCompatActivity() {
      */
     private fun applyBarForm() {
         floatingBar = dataSp.getBoolean("float_bar", true)
-        val clearance = if (floatingBar) {
-            ((SizeTokens.NavigationBarHeight + SpacingTokens.sm).value * resources.displayMetrics.density).toInt()
-        } else {
-            0
-        }
+        // ⚠️ 承载改为 FrameLayout 后底栏**始终叠放**，故两种形态都必须让位：
+        //   贴底 = 栏高；悬浮 = 栏高 + 胶囊下外边距。
+        //   曾把非悬浮的让位设成 0 → 全宽栏直接盖在内容上（真机实测的"盖上"缺陷）。
+        val clearanceDp = SizeTokens.NavigationBarHeight +
+            if (floatingBar) SpacingTokens.sm else SpacingTokens.none
+        val clearance =
+            (clearanceDp.value * resources.displayMetrics.density).toInt()
         findViewById<android.view.View>(R.id.fragment_container)
             .setPadding(0, 0, 0, clearance)
     }

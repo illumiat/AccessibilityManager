@@ -76,6 +76,15 @@ object SizeTokens {
     /** 底部导航高度（一级页面）。 */
     val NavigationBarHeight: Dp = 80.dp
 
+    /**
+     * 悬浮底栏的最大宽度。
+     *
+     * 底栏的宽度本应由**内容（目的数）**决定，而不是由屏幕决定 —— 大屏上不加限宽，
+     * 两个目的会被拉成一整条通栏胶囊（真机实测：平板上明显过大）。
+     * 限宽后由外层居中，宽度取「手机侧也够放下数个目的、平板侧不显空旷」的量级。
+     */
+    val FloatingNavMaxWidth: Dp = 320.dp
+
     /** 顶栏高度（小号）。 */
     val TopBarHeight: Dp = 64.dp
 

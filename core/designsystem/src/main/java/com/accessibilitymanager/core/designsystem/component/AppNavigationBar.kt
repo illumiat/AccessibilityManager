@@ -1,6 +1,9 @@
 package com.accessibilitymanager.core.designsystem.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -10,10 +13,12 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.accessibilitymanager.core.designsystem.theme.ShapeTokens
+import com.accessibilitymanager.core.designsystem.theme.SizeTokens
 import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
 
 /**
@@ -94,17 +99,29 @@ fun AppNavigationBar(
         AppNavigationBarContent(items, selectedKey, onSelect, modifier, windowInsets, null)
         return
     }
-    // 悬浮：胶囊壳由本层提供，内部栏底色透明
-    Surface(
-        shape = ShapeTokens.Full,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = modifier.padding(
-            start = SpacingTokens.lg,
-            end = SpacingTokens.lg,
-            bottom = SpacingTokens.sm,
-        ),
+    // 悬浮：胶囊壳由本层提供，内部栏底色透明。
+    // 外层 Box 占满宽并**居中**子项；胶囊本体由内容定宽、上限 [SizeTokens.FloatingNavMaxWidth] ——
+    // 宽度由目的数决定而非屏幕宽度，否则大屏上会被拉成通栏（真机实测问题）。
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(
+                start = SpacingTokens.lg,
+                end = SpacingTokens.lg,
+                bottom = SpacingTokens.sm,
+            ),
+        contentAlignment = Alignment.BottomCenter,
     ) {
-        AppNavigationBarContent(items, selectedKey, onSelect, Modifier, windowInsets, Color.Transparent)
+        Surface(
+            shape = ShapeTokens.Full,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            AppNavigationBarContent(
+                items, selectedKey, onSelect,
+                Modifier.widthIn(max = SizeTokens.FloatingNavMaxWidth),
+                windowInsets, Color.Transparent,
+            )
+        }
     }
 }
 
