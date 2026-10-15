@@ -20,8 +20,8 @@ android {
         // 故取 29 让上述限制全部不生效 —— 保活链不必与平台限制对抗。
         // compileSdk 35 只影响编译期 API 可见性，与运行期行为限制无关。
         targetSdk 29
-        versionCode 20
-        versionName "1.4.1"
+        versionCode 21
+        versionName "1.4.2"
     }
 
     buildTypes {

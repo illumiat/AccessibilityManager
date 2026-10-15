@@ -35,11 +35,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.accessibilitymanager.R
 import com.accessibilitymanager.core.designsystem.theme.ShapeTokens
@@ -106,6 +107,14 @@ fun HomeScreen(
     loading: Boolean = false,
     error: Boolean = false,
     onScrollingChanged: (Boolean) -> Unit = {},
+    /**
+     * 底栏占去的底部高度（调用方按当前形态给出）。
+     *
+     * ⚠️ 加在**列表的可滚动内边距**里，**不加在容器上**：加在容器上会缩短视口、
+     * 底部留出一条没有内容的死区（实测症状：不滚动时胶囊周围是空白而非内容）。
+     * 加在可滚动内边距上 —— 内容照常铺满全屏、可从胶囊下穿过，滚到底又能整项滚上来。
+     */
+    bottomInset: Dp = 0.dp,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         if (!permissionGranted) {
@@ -161,7 +170,7 @@ fun HomeScreen(
                         start = SpacingTokens.lg,
                         end = SpacingTokens.lg,
                         top = SpacingTokens.sm,
-                        bottom = SpacingTokens.xxl,
+                        bottom = SpacingTokens.xxl + bottomInset,
                     ),
                     horizontalArrangement = Arrangement.spacedBy(spacing),
                     verticalArrangement = Arrangement.spacedBy(spacing),

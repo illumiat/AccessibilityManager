@@ -118,7 +118,7 @@ fun AppNavigationBar(
         ) {
             AppNavigationBarContent(
                 items, selectedKey, onSelect,
-                Modifier.widthIn(max = SizeTokens.FloatingNavMaxWidth),
+                Modifier.widthIn(max = SizeTokens.FloatingNavItemWidth * items.size),
                 windowInsets, Color.Transparent,
             )
         }

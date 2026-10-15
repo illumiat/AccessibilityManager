@@ -33,6 +33,8 @@ import com.accessibilitymanager.ui.detail.DetailHost
 import com.accessibilitymanager.ui.detail.DetailInfo
 import com.accessibilitymanager.ui.detail.DetailRestart
 import com.accessibilitymanager.ui.detail.ServiceDetailCallback
+import com.accessibilitymanager.core.designsystem.theme.SizeTokens
+import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
 import com.accessibilitymanager.ui.home.HomeListBinder
 import com.accessibilitymanager.ui.home.HomeListState
 import com.accessibilitymanager.ui.home.HomeServiceCallback
@@ -358,6 +360,7 @@ class HomeFragment : Fragment(), HomeServiceCallback {
         HomeListBinder.bind(
             lv,
             listState,
+            barBottomInset(),
             detailHost,
             this,
             { q ->
@@ -369,6 +372,14 @@ class HomeFragment : Fragment(), HomeServiceCallback {
             ::refreshList,
         )
     }
+
+    /**
+     * 底栏占去的底部高度（按当前形态）：悬浮含胶囊下外边距，贴底只算栏高。
+     * 真值来源与底栏同一份 `data` SP（`float_bar`），不另存。
+     */
+    private fun barBottomInset() =
+        SizeTokens.NavigationBarHeight +
+            if (sp.getBoolean("float_bar", true)) SpacingTokens.sm else SpacingTokens.none
 
     /** 置顶串顺序（既有 sortDisplay 的 indexOf 排序依赖串顺序，故必须传 List 而非 Set）。 */
     private fun topOrder(): List<String> = RestartPrefs.splitIds(sp.getString("top", "").orEmpty())

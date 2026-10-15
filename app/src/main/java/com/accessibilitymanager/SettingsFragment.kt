@@ -21,6 +21,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import com.accessibilitymanager.core.designsystem.theme.SizeTokens
+import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
 import com.accessibilitymanager.core.designsystem.theme.AppTheme
 import com.accessibilitymanager.core.designsystem.theme.ContrastLevel
 import com.accessibilitymanager.core.designsystem.theme.ThemeName
@@ -120,6 +122,9 @@ class SettingsFragment : Fragment() {
                         sp.edit().putBoolean("float_bar", it).apply()
                         ui = ui.copy(floatBar = it)
                     },
+                    // 与主页同一口径：让位加在滚动内容里，不加在容器上
+                    bottomInset = SizeTokens.NavigationBarHeight +
+                        if (sp.getBoolean("float_bar", true)) SpacingTokens.sm else SpacingTokens.none,
                     onRegrantClick = { PermissionHelper.showPermissionDialog(requireContext()) },
                     onHelpClick = { showHelp = true },
                     onOpenNotificationSettings = { openNotificationSettings() },

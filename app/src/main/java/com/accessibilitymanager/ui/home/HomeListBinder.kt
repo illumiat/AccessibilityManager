@@ -6,6 +6,7 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import com.accessibilitymanager.core.designsystem.theme.AppTheme
 import com.accessibilitymanager.ui.detail.DetailHost
 import com.accessibilitymanager.ui.detail.DetailOverlay
@@ -51,6 +52,7 @@ object HomeListBinder {
       fun bind(
           view: ComposeView,
           state: HomeListState,
+          bottomInset: Dp,
           detailHost: DetailHost,
           callback: HomeServiceCallback,
           onQueryChange: Consumer<String>,
@@ -73,6 +75,7 @@ object HomeListBinder {
                               loading = state.loading,
                               error = state.error,
                               onScrollingChanged = state::onScrollingChanged,
+                              bottomInset = bottomInset,
                               onSearchChange = { q ->
                                   state.query = q // 驱动输入框回显
                                   onQueryChange.accept(q) // 宿主据此重算列表

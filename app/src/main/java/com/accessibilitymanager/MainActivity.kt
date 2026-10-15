@@ -17,8 +17,6 @@ import androidx.fragment.app.FragmentTransaction
 import com.accessibilitymanager.core.designsystem.component.AppNavigationBar
 import com.accessibilitymanager.core.designsystem.component.NavItem
 import com.accessibilitymanager.core.designsystem.theme.AppTheme
-import com.accessibilitymanager.core.designsystem.theme.SizeTokens
-import com.accessibilitymanager.core.designsystem.theme.SpacingTokens
 import com.accessibilitymanager.core.designsystem.theme.ThemeCatalog
 import com.google.android.material.color.DynamicColors
 
@@ -116,23 +114,21 @@ class MainActivity : AppCompatActivity() {
         }
 
     /**
-     * 应用底栏形态：悬浮时内容会从栏下经过，故给内容容器**留出让位高度**，
-     * 否则列表最后一项会被永久压在栏下、滚不出来。
+     * 应用底栏形态。
      *
-     * 让位高度 = `NavigationBarHeight`(80dp) + 胶囊下外边距 `sm`(8dp)。
+     * ## 让位高度**必须量出来，不能算出来**
+     *
+     * 承载是 `FrameLayout`（底栏叠放），故内容必须有底部让位，否则最后一项被永久压在栏下。
+     * 但让位值**不能**用 `NavigationBarHeight + 外边距` 算：栏的实际高度由 Compose 内容决定
+     * （胶囊形态还含 `Surface` 与内边距），dp 算术算出来的值偏小 → **真机实测仍然被盖住**。
+     *
+     * 故改为：给栏挂**布局变化监听**，把内容容器的 `paddingBottom` 始终保持为
+     * **栏的实测高度**。两种形态共用一条规则，不存在"某种形态忘了让位"的空间。
      */
     private fun applyBarForm() {
         floatingBar = dataSp.getBoolean("float_bar", true)
-        // ⚠️ 承载改为 FrameLayout 后底栏**始终叠放**，故两种形态都必须让位：
-        //   贴底 = 栏高；悬浮 = 栏高 + 胶囊下外边距。
-        //   曾把非悬浮的让位设成 0 → 全宽栏直接盖在内容上（真机实测的"盖上"缺陷）。
-        val clearanceDp = SizeTokens.NavigationBarHeight +
-            if (floatingBar) SpacingTokens.sm else SpacingTokens.none
-        val clearance =
-            (clearanceDp.value * resources.displayMetrics.density).toInt()
-        findViewById<android.view.View>(R.id.fragment_container)
-            .setPadding(0, 0, 0, clearance)
     }
+
 
     private fun showTab(tab: String) {
         currentTab = tab

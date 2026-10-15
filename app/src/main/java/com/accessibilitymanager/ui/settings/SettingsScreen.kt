@@ -19,6 +19,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import com.accessibilitymanager.BuildConfig
 import com.accessibilitymanager.R
@@ -105,6 +107,13 @@ fun SettingsScreen(
     onHideChange: (Boolean) -> Unit,
     onRestartNotifyChange: (Boolean) -> Unit,
     onFloatBarChange: (Boolean) -> Unit,
+    /**
+     * 底栏占去的底部高度（调用方按当前形态给出）。
+     *
+     * ⚠️ 加在**滚动内容的底部内边距**里，**不加在容器上**：加在容器上会缩短视口、
+     * 底部留出一条没有内容的死区（实测症状：不滚动时胶囊周围是空白而非内容）。
+     */
+    bottomInset: Dp = 0.dp,
     onRegrantClick: () -> Unit,
     onHelpClick: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
@@ -116,7 +125,11 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            // ⚠️ 必须排在 verticalScroll **之后** —— 这样内边距在滚动区**内**、
+            // 内容照常铺满全屏（可从底栏下穿过），滚到底又能整项滚上来；
+            // 排在之前会让视口变短、底部留出没有内容的死区。
+            .padding(bottom = bottomInset),
         // ⚠️ 此处**不得**再声明水平内缩：水平内缩的唯一归属是内容自身 ——
         // 设计系统组件（M3ListItem / M3SectionHeader）自带 `SpacingTokens.lg`，
         // 页面里非组件的直接内容（标题 / 副标题 / 页脚）各自声明同一个 token。
