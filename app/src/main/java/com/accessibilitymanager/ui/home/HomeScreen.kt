@@ -106,6 +106,8 @@ fun HomeScreen(
     loading: Boolean = false,
     error: Boolean = false,
     onScrollingChanged: (Boolean) -> Unit = {},
+    /** 底部悬浮栏的宿主状态（含它自己的开关）。 */
+    quickBar: QuickBarHost,
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         if (!permissionGranted) {
@@ -129,7 +131,8 @@ fun HomeScreen(
               }
           }
 
-        BoxWithConstraints(modifier = Modifier.weight(1f)) {
+        Box(modifier = Modifier.weight(1f)) {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val spacing = SpacingTokens.sm
             val spanCount = max(
                 1,
@@ -183,6 +186,17 @@ fun HomeScreen(
                         )
                     }
                 }
+            }
+            }
+            // 底部悬浮栏：浮在内容之上、**不占布局空间**（列表从它下方滑过）。
+            // 由它**自己的开关**（设置页「底部悬浮栏」）控制显隐。
+            if (quickBar.enabled) {
+                QuickToggleBar(
+                    toggles = quickBar.toggles(),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = SpacingTokens.xl),
+                )
             }
         }
     }

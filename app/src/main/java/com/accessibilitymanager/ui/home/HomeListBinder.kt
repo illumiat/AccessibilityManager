@@ -51,6 +51,7 @@ object HomeListBinder {
       fun bind(
           view: ComposeView,
           state: HomeListState,
+          quickBar: QuickBarHost,
           detailHost: DetailHost,
           callback: HomeServiceCallback,
           onQueryChange: Consumer<String>,
@@ -73,6 +74,7 @@ object HomeListBinder {
                               loading = state.loading,
                               error = state.error,
                               onScrollingChanged = state::onScrollingChanged,
+                              quickBar = quickBar,
                               onSearchChange = { q ->
                                   state.query = q // 驱动输入框回显
                                   onQueryChange.accept(q) // 宿主据此重算列表
